@@ -6,9 +6,19 @@
 [functions]
   node_bundler = "esbuild"
 
+# Scheduled function: daily reminders at 9:00 AM IST
+[functions."reminder-scheduled"]
+  schedule = "0 3 * * *"
+
 # Explicitly pass through function requests so the SPA catch-all doesn't intercept them
 [[redirects]]
   from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# API endpoint for customer portal
+[[redirects]]
+  from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 

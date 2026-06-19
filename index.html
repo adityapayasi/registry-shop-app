@@ -183,6 +183,12 @@
     <a data-view="bank"      tabindex="0" role="link" aria-label="${L('बैंक','Bank')}" onclick="showView('bank')"><span class="ic">🏦</span><span data-i18n="nav.bank">बैंक</span></a>
     <a data-view="reports"   tabindex="0" role="link" aria-label="${L('रिपोर्ट','Reports')}" onclick="showView('reports')"><span class="ic">📊</span><span data-i18n="nav.reports">रिपोर्ट</span></a>
     <a data-view="backup"    tabindex="0" role="link" aria-label="${L('बैकअप/सेटिंग','Backup / Settings')}" onclick="showView('backup')"><span class="ic">⚙️</span><span data-i18n="nav.backup">बैकअप/सेटिंग</span></a>
+    <a data-view="analytics"   tabindex="0" role="link" onclick="showView('analytics')"><span class="ic">📊</span><span data-i18n="nav.analytics">एनालिटिक्स</span></a>
+    <a data-view="reminders"   tabindex="0" role="link" onclick="showView('reminders')"><span class="ic">🔔</span><span data-i18n="nav.reminders">रिमाइंडर</span></a>
+    <a data-view="smartSearch" tabindex="0" role="link" onclick="showView('smartSearch')"><span class="ic">🔍</span><span data-i18n="nav.smartSearch">स्मार्ट खोज</span></a>
+    <a data-view="templates"  tabindex="0" role="link" onclick="showView('templates')"><span class="ic">📝</span><span data-i18n="nav.templates">टेंप्लेट</span></a>
+    <a data-view="recurring"  tabindex="0" role="link" onclick="showView('recurring')"><span class="ic">🔄</span><span data-i18n="nav.recurring">नियमित ग्राहक</span></a>
+    <a data-view="govt"       tabindex="0" role="link" onclick="showView('govt')"><span class="ic">🏛️</span><span data-i18n="nav.govt">सरकारी पोर्टल</span></a>
   </nav>
   <main class="content" id="content"></main>
 </div>
@@ -230,6 +236,7 @@ function defaultData(){
       theme:'light', fontScale:1, gstEnabled:false, gstRate:18, gstin:'', passcode:'', passcodeHash:'',
       autoBackupDaily:true, lastAutoBackup:'', backupFolderName:'', onboarded:false, demoLoaded:false,
       syncEnabled:false, syncKey:'', syncRev:0, lastSyncAt:'',
+      state:'mp', telegramBotToken:'', pushEnabled:false, currentUser:null, users:[],
       incomeCategories:['Registry Fee','Consultation','Stamp Sale','Other'],
       expenseCategories:['Rent','Electricity','Salary','Stationery','Travel','Other'] },
     transactions:[], workers:[], salaryPayments:[],
@@ -437,7 +444,7 @@ function getAutoSnapshots(){ try{ return JSON.parse(localStorage.getItem(AUTO_KE
 function uid(){ return (crypto.randomUUID? crypto.randomUUID() : 'id'+Date.now()+Math.random().toString(16).slice(2)); }
 
 /* ---------- helpers ---------- */
-let state={ view:'dashboard', lang:DB.settings.lang||'hi', selectedCustomer:null, selectedAccount:null };
+let state={ view:'dashboard', lang:DB.settings.lang||'hi', selectedCustomer:null, selectedAccount:null, smartSearchQ:'', custQ:'' };
 function L(hi,en){ return state.lang==='hi'? hi : en; }
 function money(n){ const c=DB.settings.currency; const v=Math.round(Math.abs(n||0)); return (n<0?'-':'')+c+v.toLocaleString('en-IN'); }
 function today(){ const T=Intl.DateTimeFormat().resolvedOptions().timeZone; const p=new Intl.DateTimeFormat('en-CA',{timeZone:T,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()); const g=t=>p.find(x=>x.type===t)?.value||''; return g('year')+'-'+g('month')+'-'+g('day'); }
@@ -487,6 +494,12 @@ const I18N={
   'nav.bank':{hi:'बैंक',en:'Bank'},
   'nav.reports':{hi:'रिपोर्ट',en:'Reports'},
   'nav.backup':{hi:'बैकअप/सेटिंग',en:'Backup / Settings'},
+  'nav.analytics':{hi:'एनालिटिक्स',en:'Analytics'},
+  'nav.reminders':{hi:'रिमाइंडर',en:'Reminders'},
+  'nav.smartSearch':{hi:'स्मार्ट खोज',en:'Smart Search'},
+  'nav.templates':{hi:'टेंप्लेट',en:'Templates'},
+  'nav.recurring':{hi:'नियमित ग्राहक',en:'Recurring'},
+  'nav.govt':{hi:'सरकारी पोर्टल',en:'Govt Portals'},
 };
 function applyStaticI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(I18N[k]) el.textContent=I18N[k][state.lang]; });
@@ -615,7 +628,7 @@ function submitForm(){
 }
 
 /* ---------- router ---------- */
-const VIEWS={dashboard:renderDashboard,income:renderIncome,registry:renderRegistry,pending:renderPending,ledger:renderLedger,salary:renderSalary,bank:renderBank,reports:renderReports,backup:renderBackup};
+const VIEWS={dashboard:renderDashboard,income:renderIncome,registry:renderRegistry,pending:renderPending,ledger:renderLedger,salary:renderSalary,bank:renderBank,reports:renderReports,backup:renderBackup,analytics:renderAnalytics,reminders:renderReminderDashboard,smartSearch:renderSmartSearch,templates:renderDocumentTemplates,recurring:renderRecurring,govt:renderGovtLinks};
 function showView(v){ state.view=v; document.querySelector('nav.side').classList.remove('open'); render(); }
 function updatePendingPill(){
   const cnt=outstandingCustomers().length + pendingRegistriesUnlinked().length;
@@ -1668,6 +1681,43 @@ function renderBackup(el){
       </div>`:''}
     </div>
     <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">📱 Telegram Bot</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('टेलीग्राम बॉट से ग्राहकों को रिमाइंडर भेजें। बॉट बनाएं: @BotFather','Send customer reminders via Telegram Bot. Create bot: @BotFather')}</p>
+      <label class="fld"><span class="lt">${L('बॉट टोकन','Bot Token')}</span>
+        <input id="setBotToken" type="password" value="${esc(DB.settings.telegramBotToken||'')}" placeholder="123456:ABC-DEF..."></label>
+      <button class="btn" onclick="saveTelegramConfig()">${L('सेव करें','Save')}</button>
+      <button class="btn sec sm" onclick="testTelegramConnection()">${L('टेस्ट','Test')}</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🔔 ${L('Push Notifications','Push Notifications')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('ब्राउज़र में instant alerts पाएं।','Get instant alerts in browser.')}</p>
+      <button class="btn" onclick="subscribePush()">${L('चालू करें','Enable')}</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">👥 ${L('उपयोगकर्ता','Users')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('मालिक/मैनेजर/क्लर्क — अलग-अलग अधिकार।','Owner/Manager/Clerk — different permissions.')}</p>
+      <button class="btn" onclick="userLogin()">${L('लॉगिन','Login')}</button>
+      <button class="btn sec sm" onclick="manageUsers()">${L('प्रबंधन','Manage')}</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🧮 ${L('स्टांप ड्यूटी कैलकुलेटर','Stamp Duty Calculator')}</h3>
+      <button class="btn sec" onclick="showStampDutyCalculator()">${L('खोलें','Open')}</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🏛️ ${L('राज्य','State')}</h3>
+      <label class="fld"><span class="lt">${L('राज्य चुनें','Select State')}</span>
+        <select onchange="DB.settings.state=this.value;save();render();">
+          <option value="mp" ${DB.settings.state==='mp'?'selected':''}>Madhya Pradesh (MP)</option>
+          <option value="up" ${DB.settings.state==='up'?'selected':''}>Uttar Pradesh (UP)</option>
+          <option value="rj" ${DB.settings.state==='rj'?'selected':''}>Rajasthan (RJ)</option>
+        </select></label>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
       <h3 style="margin-top:0">🕒 ${L('हाल की गतिविधि','Recent activity')}</h3>
       ${DB.auditLog&&DB.auditLog.length?`<div style="max-height:180px;overflow:auto;font-size:13px">${DB.auditLog.slice(0,20).map(a=>`<div style="padding:5px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted)">${esc(a.at)}</span> — ${esc(a.action)}</div>`).join('')}</div>`:`<div style="color:var(--muted);font-size:13px">${L('अभी कोई गतिविधि नहीं।','No activity yet.')}</div>`}
     </div>
@@ -2270,6 +2320,15 @@ if(corruptRecovered){
   /* multi-device sync: start polling if it was enabled on this device */
   try{ if(syncOn()) startSync(); else setSyncChip('ok'); }catch(e){}
 })();
+function saveTelegramConfig(){
+  const token = document.getElementById('setBotToken').value.trim();
+  DB.settings.telegramBotToken = token;
+  save(); toast(L('Telegram config सेव हुआ','Telegram config saved'),{type:'good'});
+}
+async function testTelegramConnection(){
+  await testTelegramMessage('TEST_CHAT_ID', 'Test from Registry Shop!');
+}
+
 </script>
 <script>
 if ('serviceWorker' in navigator) {
