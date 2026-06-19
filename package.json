@@ -1,0 +1,30 @@
+{
+  "name": "registry-shop-app",
+  "version": "3.0.0",
+  "description": "रजिस्ट्री दुकान — हिसाब-किताब (Registry Shop Bookkeeping App). Fully offline, bilingual Hindi/English, PWA.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "npx serve dist",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "deploy": "npm run build && npx netlify deploy --prod --dir=dist --functions=netlify/functions"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^26.0.0",
+    "serve": "^14.0.0"
+  },
+  "keywords": [
+    "bookkeeping",
+    "registry",
+    "offline-first",
+    "pwa",
+    "hindi",
+    "india"
+  ],
+  "author": "Adity",
+  "license": "MIT",
+  "private": true
+}

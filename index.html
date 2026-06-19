@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#3b4cca" />
+<link rel="manifest" href="/manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>रजिस्ट्री दुकान — हिसाब-किताब</title>
+<style>
+  :root{
+    --bg:#eef1f8; --card:#ffffff; --ink:#1b2230; --muted:#67718a;
+    --line:#e3e7f1; --brand:#3b4cca; --brand-d:#2c3aa6; --brand2:#2f9e7e; --danger:#d6455b;
+    --warn:#c9821a; --ok:#2f9e7e; --chip:#eef1fb; --chip2:#f5f7fc;
+    --shadow:0 1px 2px rgba(20,30,60,.06),0 8px 28px rgba(20,30,60,.07);
+    --radius:14px;
+  }
+  html[data-theme="dark"]{
+    --bg:#0f1422; --card:#171d2e; --ink:#e7ebf5; --muted:#9aa4bd;
+    --line:#27304a; --brand:#5b6cf0; --brand-d:#475ae0; --brand2:#36b48f;
+    --chip:#1d2540; --chip2:#161c2e;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.4);
+  }
+  html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#0f1626;color:var(--ink)}
+  html[data-theme="dark"] th{background:#1b2236}
+  html[data-theme="dark"] table{background:var(--card)}
+  html[data-theme="dark"] tbody tr:hover{background:#1b2236}
+  html[data-theme="dark"] .btn.ghost{background:#171d2e}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Segoe UI",system-ui,"Noto Sans Devanagari",Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15.5px;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;min-height:44px;min-width:44px}
+  button.btn.sm{min-height:auto;min-width:auto}
+  button.hbtn,button.hamburger{min-height:44px;min-width:44px}
+  a{color:var(--brand);text-decoration:none}
+  /* ---------- layout ---------- */
+  header.topbar{position:sticky;top:0;z-index:30;background:linear-gradient(120deg,var(--brand),var(--brand-d));color:#fff;display:flex;align-items:center;gap:12px;padding:11px 16px;box-shadow:var(--shadow)}
+  header .logo{font-weight:700;font-size:18px;display:flex;align-items:center;gap:9px;white-space:nowrap}
+  header .logo .dot{width:26px;height:26px;border-radius:8px;background:#fff;color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:16px}
+  header .spacer{flex:1}
+  header .shopname{opacity:.95;font-size:14px;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .langtoggle{display:flex;background:rgba(255,255,255,.18);border-radius:999px;overflow:hidden}
+  .langtoggle button{border:0;background:transparent;color:#fff;padding:7px 13px;font-weight:600;opacity:.7;font-size:14px}
+  .langtoggle button.active{background:#fff;color:var(--brand);opacity:1}
+  .hamburger{display:none;border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:7px 11px;font-size:18px}
+  .hbtn{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:8px;padding:7px 11px;font-size:16px;margin-right:8px}
+  .hbtn:hover{background:rgba(255,255,255,.3)}
+  .layout{display:flex;min-height:calc(100vh - 54px)}
+  nav.side{width:218px;background:var(--card);border-right:1px solid var(--line);padding:12px 10px;flex-shrink:0}
+  nav.side a{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:11px;color:var(--ink);margin-bottom:3px;font-weight:500;font-size:15px}
+  nav.side a .ic{width:22px;text-align:center;font-size:17px}
+  nav.side a:hover{background:var(--chip)}
+  nav.side a{cursor:pointer}
+  nav.side a:focus-visible,.btn:focus-visible{outline:3px solid #8e9bff;outline-offset:2px}
+  nav.side a.active{background:var(--brand);color:#fff;box-shadow:0 4px 14px rgba(59,76,202,.32)}
+  nav.side a .pill{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 7px;min-width:20px;text-align:center}
+  nav.side a.active .pill{background:#fff;color:var(--danger)}
+  main.content{flex:1;padding:20px 22px;max-width:100%;overflow-x:auto}
+  /* ---------- components ---------- */
+  .pagehead{display:flex;align-items:center;gap:12px;margin:0 0 18px;flex-wrap:wrap}
+  .pagehead h2{margin:0;font-size:22px}
+  .pagehead .sub{color:var(--muted);font-size:13px;margin-top:3px}
+  .pagehead .spacer{flex:1}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .stat{display:flex;flex-direction:column;gap:6px}
+  .stat .lbl{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px}
+  .stat .val{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stat.good .val{color:var(--ok)} .stat.bad .val{color:var(--danger)} .stat.warn .val{color:var(--warn)} .stat.brand .val{color:var(--brand)}
+  .btn{border:0;border-radius:11px;padding:10px 15px;font-weight:600;background:var(--brand);color:#fff;display:inline-flex;align-items:center;gap:6px;font-size:14.5px;transition:filter .12s,transform .04s}
+  .btn:hover{filter:brightness(1.06)} .btn:active{transform:translateY(1px)}
+  .btn.sec{background:var(--chip);color:var(--brand)}
+  .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .btn.green{background:var(--brand2)} .btn.red{background:var(--danger)} .btn.warn{background:var(--warn)}
+  .btn.sm{padding:7px 11px;font-size:13px;border-radius:9px}
+  .btn.big{padding:13px 20px;font-size:16px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+  th,td{padding:11px 13px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;white-space:nowrap}
+  th{background:#f7f9ff;color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#fafbff}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tablewrap{overflow-x:auto;border-radius:12px}
+  .pager{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .pager .info{color:var(--muted);font-size:13px}
+  .pager .spacer{flex:1}
+  .pager button[disabled]{opacity:.45;cursor:default}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+  .badge.income{background:#e6f6ef;color:#1d7a57} .badge.expense{background:#fde9ec;color:#b62a40}
+  .badge.gray{background:#eef1f6;color:#5a6577} .badge.blue{background:#e8ebfb;color:#2f3da8}
+  .badge.warn{background:#fdf0db;color:#9a6411} .badge.part{background:#fff3d6;color:#946200}
+  .empty{padding:44px;text-align:center;color:var(--muted)}
+  .empty .big{font-size:34px;display:block;margin-bottom:10px;opacity:.7}
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:15px}
+  .toolbar .grp{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:4px 8px}
+  .toolbar .grp span{color:var(--muted);font-size:13px}
+  input,select,textarea{font-family:inherit;font-size:15px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);width:100%}
+  input:focus,select:focus,textarea:focus{outline:2px solid #c7cdf5;border-color:var(--brand)}
+  input[type=date],input[type=month]{min-width:0}
+  .search{max-width:280px}
+  label.fld{display:block;margin-bottom:14px}
+  label.fld .lt{display:block;font-size:13.5px;color:var(--ink);margin-bottom:6px;font-weight:600}
+  label.fld .help{font-size:12.5px;color:var(--muted);margin:5px 2px 0;line-height:1.4}
+  label.fld .err{font-size:12.5px;color:var(--danger);margin:5px 2px 0;font-weight:600;display:none}
+  label.fld.bad input,label.fld.bad select,label.fld.bad textarea{border-color:var(--danger);outline-color:#f3b9c4}
+  label.fld.bad .err{display:block}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  /* ---------- modal ---------- */
+  .modal-bg{position:fixed;inset:0;background:rgba(15,22,40,.5);display:none;z-index:50;align-items:flex-start;justify-content:center;padding:28px 14px;overflow:auto}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--card);border-radius:18px;max-width:600px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.3);animation:pop .15s ease}
+  .modal.wide{max-width:760px}
+  @keyframes pop{from{transform:translateY(10px);opacity:.5}to{transform:none;opacity:1}}
+  .modal h3{margin:0;padding:17px 22px;border-bottom:1px solid var(--line);font-size:18px;display:flex;align-items:center;gap:8px}
+  .modal .body{padding:20px 22px;max-height:66vh;overflow:auto}
+  .modal .foot{padding:15px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .modal .foot .spacer{flex:1}
+  /* ---------- misc ---------- */
+  .ledger-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
+  .clist{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;max-height:70vh;overflow-y:auto}
+  .clist .ci{padding:13px 15px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .clist .ci:hover{background:var(--chip)}
+  .clist .ci.active{background:var(--brand);color:#fff}
+  .clist .ci .bal{font-weight:700;font-variant-numeric:tabular-nums}
+  .hint{background:#fff8ec;border:1px solid #f0dcae;color:#7a5a14;padding:11px 13px;border-radius:11px;font-size:13.5px;margin-bottom:15px;line-height:1.5}
+  .hint b{color:#5e4410}
+  .warnbar{background:#fde9ec;border:1px solid #f3b9c4;color:#9a2336;padding:11px 15px;border-radius:11px;margin-bottom:15px;font-size:14px}
+  .alertbar{display:flex;align-items:center;gap:12px;background:#fff6e6;border:1px solid #f3d79a;color:#7a5713;padding:12px 15px;border-radius:12px;margin-bottom:15px;font-size:14px}
+  .alertbar.danger{background:#fdecee;border-color:#f3b9c4;color:#9a2336}
+  .alertbar .spacer{flex:1}
+  .savechip{font-size:12.5px;opacity:.85;min-width:64px;text-align:right}
+  .sectionttl{margin:24px 0 11px;font-size:16px;display:flex;align-items:center;gap:8px}
+  /* ---------- toast ---------- */
+  #toasts{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:10px;align-items:center;width:max-content;max-width:92vw}
+  .toast{background:#1b2230;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:flex;align-items:center;gap:14px;font-size:14.5px;animation:tin .18s ease}
+  .toast.good{background:#1d7a57} .toast.bad{background:#b62a40} .toast.warn{background:#9a6411}
+  .toast button{background:rgba(255,255,255,.22);color:#fff;border:0;border-radius:8px;padding:6px 12px;font-weight:700;font-size:13.5px}
+  @keyframes tin{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+  .kbd{font-size:11px;background:var(--chip);color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-weight:600}
+  @media(max-width:860px){
+    nav.side{position:fixed;left:-240px;top:54px;bottom:0;transition:.2s;z-index:40;box-shadow:var(--shadow)}
+    nav.side.open{left:0}
+    .hamburger{display:inline-block}
+    .ledger-grid{grid-template-columns:1fr}
+    .row2,.row3{grid-template-columns:1fr}
+    header .shopname{display:none}
+  }
+  @media print{
+    header.topbar,nav.side,.toolbar,.pagehead .btn,.no-print,#toasts,.alertbar,.hint{display:none!important}
+    main.content{padding:0}
+    body{background:#fff}
+    .card{box-shadow:none;border:1px solid #ccc}
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="hamburger" onclick="document.querySelector('nav.side').classList.toggle('open')" aria-label="menu">☰</button>
+  <div class="logo"><span class="dot">र</span><span data-i18n="appName">रजिस्ट्री दुकान</span></div>
+  <span class="shopname" id="shopNameTop"></span>
+  <div class="spacer"></div>
+  <input type="text" id="globalSearch" placeholder="${L('सब कुछ खोजें...','Search everything...')}" style="width:220px;border-radius:999px;padding:7px 14px;font-size:13px;background:rgba(255,255,255,.22);color:#fff;border:0;outline:none" oninput="doGlobalSearch(this.value)" onkeydown="if(event.key==='Enter')doGlobalSearch(this.value)">
+  <span class="savechip" id="saveChip"></span>
+  <span class="savechip" id="syncChip" style="display:none;cursor:pointer" onclick="syncNow()" title="मल्टी-डिवाइस सिंक / Multi-device sync"></span>
+  <button class="hbtn" onclick="helpModal()" title="मदद / Help" aria-label="Help">❔</button>
+  <div class="langtoggle">
+    <button id="langHi" onclick="setLang('hi')" onkeydown="if(event.key==='Enter'||event.key===' ')setLang('hi')" aria-pressed="true">हिं</button>
+    <button id="langEn" onclick="setLang('en')" onkeydown="if(event.key==='Enter'||event.key===' ')setLang('en')" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="side" id="sidenav" aria-label="${L('मुख्य मेनू','Main menu')}">
+    <a data-view="dashboard" tabindex="0" role="link" aria-label="${L('डैशबोर्ड','Dashboard')}" onclick="showView('dashboard')"><span class="ic">🏠</span><span data-i18n="nav.dashboard">डैशबोर्ड</span></a>
+    <a data-view="income"    tabindex="0" role="link" aria-label="${L('आय-खर्च','Income / Expense')}" onclick="showView('income')"><span class="ic">💵</span><span data-i18n="nav.income">आय-खर्च</span></a>
+    <a data-view="registry"  tabindex="0" role="link" aria-label="${L('रजिस्ट्री','Registry')}" onclick="showView('registry')"><span class="ic">📑</span><span data-i18n="nav.registry">रजिस्ट्री</span></a>
+    <a data-view="pending"   tabindex="0" role="link" aria-label="${L('बकाया वसूली','Pending Dues')}" onclick="showView('pending')"><span class="ic">⏳</span><span data-i18n="nav.pending">बकाया वसूली</span><span class="pill" id="pendingPill" style="display:none" aria-label="${L('बकाया गिनती','Due count')}"></span></a>
+    <a data-view="ledger"    tabindex="0" role="link" aria-label="${L('उधार खाता','Udhaar Ledger')}" onclick="showView('ledger')"><span class="ic">📒</span><span data-i18n="nav.ledger">उधार खाता</span></a>
+    <a data-view="salary"    tabindex="0" role="link" aria-label="${L('सैलरी','Salary')}" onclick="showView('salary')"><span class="ic">👷</span><span data-i18n="nav.salary">सैलरी</span></a>
+    <a data-view="bank"      tabindex="0" role="link" aria-label="${L('बैंक','Bank')}" onclick="showView('bank')"><span class="ic">🏦</span><span data-i18n="nav.bank">बैंक</span></a>
+    <a data-view="reports"   tabindex="0" role="link" aria-label="${L('रिपोर्ट','Reports')}" onclick="showView('reports')"><span class="ic">📊</span><span data-i18n="nav.reports">रिपोर्ट</span></a>
+    <a data-view="backup"    tabindex="0" role="link" aria-label="${L('बैकअप/सेटिंग','Backup / Settings')}" onclick="showView('backup')"><span class="ic">⚙️</span><span data-i18n="nav.backup">बैकअप/सेटिंग</span></a>
+  </nav>
+  <main class="content" id="content"></main>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div id="toasts" role="status" aria-live="polite" aria-relevant="additions"></div>
+
+<script>
+/* ============================================================
+   रजिस्ट्री दुकान — हिसाब-किताब  (single-file app, no install)
+   डेटा localStorage में आपके PC पर ही रहता है। बैकअप ज़रूर लें।
+   v2 — data-safe, undo, validation, receipts, pending, exports
+   ============================================================ */
+
+/* ---------- Excel support: lazy-load XLSX library from CDN when needed ---------- */
+let _xlsxLoaded=false;
+function loadXLSX(){
+  return new Promise((res,rej)=>{
+    if(_xlsxLoaded || typeof XLSX!=='undefined'){ _xlsxLoaded=true; res(true); return; }
+    const s=document.createElement('script');
+    s.src='https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js';
+    s.onload=()=>{ _xlsxLoaded=true; res(true); };
+    s.onerror=()=>rej(false);
+    document.head.appendChild(s);
+  });
+}
+
+/* ---------- storage layer ----------
+   Durability strategy:
+   • IndexedDB = primary durable store (large capacity, async) — survives even if localStorage quota is hit.
+   • localStorage = fast synchronous mirror, used to bootstrap instantly on load.
+   A save writes BOTH; if localStorage throws (quota/blocked) the data is still safe in IndexedDB,
+   so a quota error is no longer fatal — we just warn and nudge a backup. */
+const KEY='registry_shop_app_v1';            /* same key → पुराना डेटा सुरक्षित */
+const AUTO_KEY='registry_shop_app_v1_auto';  /* rolling auto-snapshots */
+const SCHEMA_VERSION=5;
+const IDB_NAME='registry_shop_db', IDB_STORE='kv', IDB_KEY='main';
+
+function defaultData(){
+  return {
+    meta:{ version:SCHEMA_VERSION, savedAt:'' },
+    settings:{ shopName:'', shopAddress:'', shopPhone:'', lang:'hi', currency:'₹', lastBackup:'',
+      theme:'light', fontScale:1, gstEnabled:false, gstRate:18, gstin:'', passcode:'', passcodeHash:'',
+      autoBackupDaily:true, lastAutoBackup:'', backupFolderName:'', onboarded:false, demoLoaded:false,
+      syncEnabled:false, syncKey:'', syncRev:0, lastSyncAt:'',
+      incomeCategories:['Registry Fee','Consultation','Stamp Sale','Other'],
+      expenseCategories:['Rent','Electricity','Salary','Stationery','Travel','Other'] },
+    transactions:[], workers:[], salaryPayments:[],
+    customers:[], ledgerEntries:[],
+    bankAccounts:[], bankTransactions:[],
+    registryDocs:[], recurring:[], auditLog:[]
+  };
+}
+/* Strip prototype-pollution vectors (__proto__/prototype/constructor) from any
+   parsed, untrusted JSON — storage, backups, sync blobs, cross-tab — before it
+   enters app state. Self-contained so it is safe to use during initial load. */
+function _sanitizeParsed(value){
+  if(Array.isArray(value)) return value.map(_sanitizeParsed);
+  if(value && typeof value==='object'){
+    const out={};
+    for(const k of Object.keys(value)){
+      if(k==='__proto__'||k==='prototype'||k==='constructor') continue;
+      out[k]=_sanitizeParsed(value[k]);
+    }
+    return out;
+  }
+  return value;
+}
+/* migrate keeps old data working as the schema grows */
+function migrate(d){
+  d=_sanitizeParsed(d);
+  const base=defaultData();
+  const out=Object.assign({}, base, d);
+  out.meta=Object.assign({}, base.meta, d.meta||{});
+  out.settings=Object.assign({}, base.settings, d.settings||{});
+  ['transactions','workers','salaryPayments','customers','ledgerEntries','bankAccounts','bankTransactions','registryDocs','recurring','auditLog']
+    .forEach(k=>{ if(!Array.isArray(out[k])) out[k]=[]; });
+  /* v3→v4: revert paise (×100) back to rupees. v2→v3 ×100 migration removed. */
+  var _oldVer=(d.meta&&d.meta.version)||0;
+  if(_oldVer>=3 && _oldVer<4){
+    var _amtTables={transactions:['amount'],registryDocs:['stampDuty','regFee','serviceCharge','received','consideration','gst'],ledgerEntries:['amount'],salaryPayments:['amount'],bankAccounts:['balance'],bankTransactions:['amount'],workers:['salary']};
+    Object.keys(_amtTables).forEach(function(t){ (out[t]||[]).forEach(function(r){ _amtTables[t].forEach(function(f){ if(r[f]!=null&&typeof r[f]==='number') r[f]=Math.round(r[f]/100); }); }); });
+  }
+  /* registry: add new fields with safe defaults (back-compat with old otherFee) */
+  out.registryDocs.forEach(r=>{
+    if(r.serviceCharge==null) r.serviceCharge = r.otherFee!=null ? Number(r.otherFee) : 0;
+    if(r.received==null)      r.received = (r.status==='done') ? Number(r.serviceCharge) : 0;
+    if(r.docNo==null)         r.docNo='';
+    if(r.applicantPhone==null) r.applicantPhone='';
+    if(r.sro==null)           r.sro='';
+    if(r.consideration==null) r.consideration=0;
+    if(r.createdAt==null)     r.createdAt=0;
+    if(r.gst==null)           r.gst=0;
+    if(r.customerId==null)    r.customerId='';
+    if(r.linkToLedger==null)  r.linkToLedger=false;
+    if(r.followUpDate==null)  r.followUpDate='';
+    if(r.archived==null)      r.archived=false;
+  });
+  out.customers.forEach(c=>{ if(c.followUpDate==null) c.followUpDate=''; });
+  out.ledgerEntries.forEach(e=>{ if(e.followUpDate==null) e.followUpDate=''; });
+  out.settings.incomeCategories  = out.settings.incomeCategories  || ['Registry Fee','Consultation','Stamp Sale','Other'];
+  out.settings.expenseCategories = out.settings.expenseCategories || ['Rent','Electricity','Salary','Stationery','Travel','Other'];
+  out.meta.version=SCHEMA_VERSION;
+  return out;
+}
+let storageOK=true, corruptRecovered=false;
+function loadData(){
+  const raw=localStorage.getItem(KEY);
+  if(!raw) return defaultData();
+  try{ return migrate(JSON.parse(raw)); }
+  catch(e){
+    /* Data is corrupt/unparseable. Stash the raw string so a later save() can't
+       silently destroy it — the user (or we) can recover it manually. */
+    try{ localStorage.setItem(KEY+'_corrupt', raw); corruptRecovered=true; }catch(_){}
+    storageOK=false; return defaultData();
+  }
+}
+const DB=loadData();
+function replaceDB(obj){ Object.keys(DB).forEach(k=>delete DB[k]); Object.assign(DB, migrate(obj)); }
+
+/* ---------- 3-way merge for multi-device sync ----------
+   Identical logic to netlify/functions/sync.mjs. Given the snapshot we last
+   synced (base), the other side's document (other) and our current document
+   (mine), produce a merge that keeps additions from both devices, resolves
+   edits, and propagates deletes. No per-record timestamps needed — intent is
+   inferred by diffing each side against base. Conflicts prefer `mine`.
+   NOTE: the block between the @merge3 markers below is extracted verbatim by
+   test/merge3.test.mjs and run against the server copy — keep them in lockstep. */
+/* @merge3-shared-start */
+const SYNC_ARRAYS=['transactions','registryDocs','customers','ledgerEntries','workers',
+  'salaryPayments','bankAccounts','bankTransactions','recurring'];
+/* Keys that must never be copied from untrusted input (prototype pollution). */
+const FORBIDDEN_KEYS=new Set(['__proto__','prototype','constructor']);
+function _safeKeys(o){ return Object.keys(o||{}).filter(k=>!FORBIDDEN_KEYS.has(k)); }
+function _eq(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function _pickRecord(inBase,inOther,inMine){
+  const mineChanged  = inMine !=null && (inBase==null || !_eq(inMine,inBase));
+  const otherChanged = inOther!=null && (inBase==null || !_eq(inOther,inBase));
+  if(inMine!=null && inOther!=null){
+    if(mineChanged && !otherChanged) return inMine;
+    if(otherChanged && !mineChanged) return inOther;
+    return inMine;                        /* both changed (or neither) → prefer mine */
+  }
+  if(inMine!=null && inOther==null){ return (inBase==null||mineChanged)? inMine : null; }
+  if(inMine==null && inOther!=null){ return (inBase==null||otherChanged)? inOther : null; }
+  return null;                            /* only in base → deleted on both sides */
+}
+function _mergeArray(baseArr,otherArr,mineArr){
+  const idx=a=>{ const m=new Map(); (a||[]).forEach(r=>{ if(r&&r.id!=null) m.set(r.id,r); }); return m; };
+  const b=idx(baseArr), o=idx(otherArr), l=idx(mineArr);
+  const ids=new Set([...b.keys(),...o.keys(),...l.keys()]);
+  const seen=new Set(), order=[];
+  (mineArr||[]).forEach(r=>{ if(r&&r.id!=null&&!seen.has(r.id)){ seen.add(r.id); order.push(r.id); } });
+  (otherArr||[]).forEach(r=>{ if(r&&r.id!=null&&!l.has(r.id)&&!seen.has(r.id)){ seen.add(r.id); order.push(r.id); } });
+  ids.forEach(id=>{ if(!seen.has(id)) order.push(id); });
+  const out=[];
+  for(const id of order){ if(!ids.has(id)) continue; ids.delete(id);
+    const rec=_pickRecord(b.get(id),o.get(id),l.get(id)); if(rec!=null) out.push(rec); }
+  return out;
+}
+function _mergeSettings(base,other,mine){
+  base=base||{}; other=other||{}; mine=mine||{};
+  const keys=new Set([..._safeKeys(other),..._safeKeys(mine),..._safeKeys(base)]);
+  const out={};
+  keys.forEach(k=>{
+    const rec=_pickRecord(
+      base[k]===undefined?null:{v:base[k]},
+      other[k]===undefined?null:{v:other[k]},
+      mine[k]===undefined?null:{v:mine[k]});
+    if(rec!=null) out[k]=rec.v;
+  });
+  return out;
+}
+function _mergeAudit(other,mine){
+  const seen=new Set(), out=[];
+  [...(mine||[]),...(other||[])].forEach(e=>{ if(!e) return;
+    const k=(e.at||'')+'|'+(e.action||''); if(seen.has(k)) return; seen.add(k); out.push(e); });
+  out.sort((a,b)=>String(b.at||'').localeCompare(String(a.at||'')));
+  return out.slice(0,60);
+}
+function merge3(base,other,mine){
+  if(!other) return mine||base||null;
+  if(!mine)  return other;
+  base=base||{};
+  /* Build by hand, skipping prototype-pollution keys Object.assign would copy. */
+  const out={};
+  _safeKeys(other).forEach(k=>{ out[k]=other[k]; });
+  _safeKeys(mine).forEach(k=>{ out[k]=mine[k]; });
+  SYNC_ARRAYS.forEach(k=>{ out[k]=_mergeArray(base[k],other[k],mine[k]); });
+  out.settings=_mergeSettings(base.settings,other.settings,mine.settings);
+  out.auditLog=_mergeAudit(other.auditLog,mine.auditLog);
+  const oAt=(other.meta&&other.meta.savedAt)||'', mAt=(mine.meta&&mine.meta.savedAt)||'';
+  out.meta=(mAt>=oAt? mine.meta : other.meta)||{};
+  return out;
+}
+/* @merge3-shared-end */
+
+/* --- IndexedDB helpers (promise-wrapped, best-effort) --- */
+let _idb=null;
+function idbOpen(){
+  if(_idb) return Promise.resolve(_idb);
+  return new Promise((res,rej)=>{
+    let r; try{ r=indexedDB.open(IDB_NAME,1); }catch(e){ return rej(e); }
+    r.onupgradeneeded=()=>{ try{ r.result.createObjectStore(IDB_STORE); }catch(e){} };
+    r.onsuccess=()=>{ _idb=r.result; res(_idb); };
+    r.onerror=()=>rej(r.error);
+  });
+}
+async function idbSet(v){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).put(v,IDB_KEY); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
+async function idbGet(){ const db=await idbOpen(); return new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readonly'); const rq=tx.objectStore(IDB_STORE).get(IDB_KEY); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error); }); }
+
+function save(){
+  clearBalCache();
+  DB.meta.savedAt=nowStamp();
+  const json=JSON.stringify(DB);
+  let lsOK=true;
+  try{ localStorage.setItem(KEY, json); }catch(e){ lsOK=false; }
+  /* mirror to IndexedDB (durable, high-capacity) — async, non-blocking */
+  idbSet(json).then(()=>{ storageOK=true; }).catch(()=>{
+    if(!lsOK){ storageOK=false;
+      toast(L('⚠️ डेटा सेव नहीं हो पाया! जगह भर गई या ब्राउज़र ने रोका। अभी बैकअप डाउनलोड करें।',
+              '⚠️ Could not save! Storage full or blocked. Download a backup now.'),
+            {type:'bad', sticky:true, actionLabel:L('बैकअप','Backup'), onAction:()=>exportBackup()});
+    }
+  });
+  if(lsOK){ storageOK=true; } else {
+    /* localStorage full but IndexedDB likely fine → warn softly, not fatal */
+    toast(L('ℹ️ तेज़-मेमोरी भर गई — डेटा सुरक्षित डेटाबेस में सेव हो रहा है। कभी-कभी बैकअप ज़रूर लें।',
+            'ℹ️ Fast memory full — data is saving to the durable database. Please take a backup sometime.'),
+          {type:'warn'});
+  }
+  flashSaved(); autoSnapshot(); maybeAutoBackup();
+  try{ syncSchedulePush(); }catch(e){} /* push to cloud (multi-device sync) — no-op if sync is off */
+}
+function flashSaved(){
+  const c=document.getElementById('saveChip'); if(!c)return;
+  c.textContent=L('✓ सेव','✓ saved'); c.style.opacity='1';
+  clearTimeout(flashSaved._t); flashSaved._t=setTimeout(()=>c.style.opacity='.4',1200);
+}
+/* keep last 3 automatic snapshots locally (a safety net, not a substitute for file backup) */
+function autoSnapshot(){
+  try{
+    const arr=JSON.parse(localStorage.getItem(AUTO_KEY)||'[]');
+    arr.unshift({ at:nowStamp(), data:JSON.stringify(DB) });
+    while(arr.length>3) arr.pop();
+    localStorage.setItem(AUTO_KEY, JSON.stringify(arr));
+  }catch(e){/* best-effort */}
+}
+function getAutoSnapshots(){ try{ return JSON.parse(localStorage.getItem(AUTO_KEY)||'[]'); }catch(e){ return []; } }
+function uid(){ return (crypto.randomUUID? crypto.randomUUID() : 'id'+Date.now()+Math.random().toString(16).slice(2)); }
+
+/* ---------- helpers ---------- */
+let state={ view:'dashboard', lang:DB.settings.lang||'hi', selectedCustomer:null, selectedAccount:null };
+function L(hi,en){ return state.lang==='hi'? hi : en; }
+function money(n){ const c=DB.settings.currency; const v=Math.round(Math.abs(n||0)); return (n<0?'-':'')+c+v.toLocaleString('en-IN'); }
+function today(){ const T=Intl.DateTimeFormat().resolvedOptions().timeZone; const p=new Intl.DateTimeFormat('en-CA',{timeZone:T,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()); const g=t=>p.find(x=>x.type===t)?.value||''; return g('year')+'-'+g('month')+'-'+g('day'); }
+function curMonth(){ return today().slice(0,7); }
+function nowStamp(){ const T=Intl.DateTimeFormat().resolvedOptions().timeZone; const p=new Intl.DateTimeFormat('en-CA',{timeZone:T,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(new Date()); const g=t=>p.find(x=>x.type===t)?.value||''; return g('year')+'-'+g('month')+'-'+g('day')+' '+g('hour')+':'+g('minute')+':'+g('second'); }
+function fmtDate(s){ if(!s)return''; const p=String(s).split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}` : s; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function byId(arr,id){ return arr.find(x=>x.id===id); }
+function num(v){ const n=parseFloat(String(v).replace(/[, ₹$]/g,'')); return isNaN(n)?0:Math.round(n); }
+function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000); }
+function sum(arr){ return arr.reduce((s,x)=>s+Number(x.amount||0),0); }
+
+/* per-render memo cache for balances (cleared each render & save) so big
+   ledgers/bank lists don't re-scan all entries for every row */
+let _balCache={};
+function clearBalCache(){ _balCache={}; }
+
+/* minimal activity log — turns the previously-unused auditLog field live */
+function audit(action){ try{ DB.auditLog.unshift({at:nowStamp(),action:String(action)}); while(DB.auditLog.length>60) DB.auditLog.pop(); }catch(e){} }
+
+/* remember focus + caret across a full re-render (search boxes type one char then
+   the input is rebuilt by innerHTML; without this the cursor is lost every keystroke) */
+let _focusRestore=null;
+function captureFocus(){
+  const el=document.activeElement;
+  if(el&&el.id&&/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)){
+    let s=null,e=null; try{ s=el.selectionStart; e=el.selectionEnd; }catch(_){}
+    _focusRestore={id:el.id,start:s,end:e};
+  } else _focusRestore=null;
+}
+function restoreFocus(){
+  if(!_focusRestore) return;
+  const el=document.getElementById(_focusRestore.id);
+  if(el){ try{ el.focus(); if(_focusRestore.start!=null) el.setSelectionRange(_focusRestore.start,_focusRestore.end); }catch(_){} }
+  _focusRestore=null;
+}
+
+/* ---------- i18n for static chrome ---------- */
+const I18N={
+  appName:{hi:'रजिस्ट्री दुकान',en:'Registry Shop'},
+  'nav.dashboard':{hi:'डैशबोर्ड',en:'Dashboard'},
+  'nav.income':{hi:'आय-खर्च',en:'Income / Expense'},
+  'nav.registry':{hi:'रजिस्ट्री',en:'Registry'},
+  'nav.pending':{hi:'बकाया वसूली',en:'Pending Dues'},
+  'nav.ledger':{hi:'उधार खाता',en:'Udhaar Ledger'},
+  'nav.salary':{hi:'सैलरी',en:'Salary'},
+  'nav.bank':{hi:'बैंक',en:'Bank'},
+  'nav.reports':{hi:'रिपोर्ट',en:'Reports'},
+  'nav.backup':{hi:'बैकअप/सेटिंग',en:'Backup / Settings'},
+};
+function applyStaticI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(I18N[k]) el.textContent=I18N[k][state.lang]; });
+  document.documentElement.lang=state.lang;
+  document.getElementById('langHi').classList.toggle('active',state.lang==='hi');
+  document.getElementById('langEn').classList.toggle('active',state.lang==='en');
+  document.getElementById('shopNameTop').textContent=DB.settings.shopName||'';
+}
+function setLang(l){ state.lang=l; DB.settings.lang=l; save(); applyStaticI18n(); render(); }
+
+/* ---------- toast + undo ---------- */
+function toast(msg,opts={}){
+  const wrap=document.getElementById('toasts');
+  const el=document.createElement('div');
+  el.className='toast '+(opts.type||'');
+  el.innerHTML=`<span>${esc(msg)}</span>`;
+  if(opts.actionLabel){
+    const b=document.createElement('button'); b.textContent=opts.actionLabel;
+    b.onclick=()=>{ el.remove(); if(opts.onAction)opts.onAction(); };
+    el.appendChild(b);
+  }
+  wrap.appendChild(el);
+  if(!opts.sticky){ setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, opts.duration||4200); }
+}
+let _undoStack=[], _redoStack=[];
+const MAX_UNDO=50;
+/* delete/edit safely: snapshot → mutate → offer Undo (no scary confirm needed) */
+function withUndo(label, mutate){
+  const snap=JSON.stringify(DB);
+  mutate(); audit(label); save(); render();
+  _undoStack.push(snap); if(_undoStack.length>MAX_UNDO) _undoStack.shift();
+  _redoStack=[];
+  toast(label, {actionLabel:L('↩ वापस लाएँ','↩ Undo'), duration:6000, onAction:()=>{ undo(); }});
+}
+function undo(){
+  if(!_undoStack.length){ toast(L('वापस लेने को कुछ नहीं','Nothing to undo'),{type:'warn'}); return; }
+  _redoStack.push(JSON.stringify(DB));
+  const snap=_undoStack.pop();
+  replaceDB(JSON.parse(snap)); save(); applyStaticI18n(); render();
+  toast(L('वापस आ गया','Restored'),{type:'good'});
+}
+function redo(){
+  if(!_redoStack.length){ toast(L('फिर से करने को कुछ नहीं','Nothing to redo'),{type:'warn'}); return; }
+  _undoStack.push(JSON.stringify(DB));
+  const snap=_redoStack.pop();
+  replaceDB(JSON.parse(snap)); save(); applyStaticI18n(); render();
+  toast(L('फिर से हो गया','Redone'),{type:'good'});
+}
+
+/* ---------- styled confirm (replaces native confirm) ---------- */
+function confirmDialog(msg,opts={}){
+  return new Promise(res=>{
+    openModal(`
+      <h3>${esc(opts.title||L('पुष्टि करें','Please confirm'))}</h3>
+      <div class="body" style="font-size:15px;line-height:1.6">${msg}</div>
+      <div class="foot">
+        <button class="btn ghost" id="cfNo">${esc(opts.cancel||L('रद्द','Cancel'))}</button>
+        <button class="btn ${opts.danger?'red':''}" id="cfYes">${esc(opts.ok||L('हाँ, जारी रखें','Yes, continue'))}</button>
+      </div>`);
+    document.getElementById('cfNo').onclick=()=>{ closeModal(); res(false); };
+    document.getElementById('cfYes').onclick=()=>{ closeModal(); res(true); };
+    document.getElementById('cfYes').focus();
+  });
+}
+
+/* ---------- modal + validated form ---------- */
+function openModal(html,wide){ const b=document.getElementById('modalBox'); b.className='modal'+(wide?' wide':''); b.innerHTML=html; document.getElementById('modalBg').classList.add('show'); }
+function closeModal(){ document.getElementById('modalBg').classList.remove('show'); _formCb=null; _formFields=null; }
+/* field: {key,label,type,options?,value?,required?,help?,placeholder?,allowNeg?,half?,step?} */
+let _formCb=null,_formFields=null;
+function formModal(title, fields, values, onSubmit, opts={}){
+  _formCb=onSubmit; _formFields=fields;
+  const renderField=f=>{
+    if(f.type==='info'){ return `<div class="hint" style="grid-column:1/-1">${f.label}</div>`; }
+    const v=values && values[f.key]!=null ? values[f.key] : (f.value!=null?f.value:'');
+    let input='';
+    if(f.type==='select'){
+      input=`<select id="f_${f.key}" oninput="clearErr('${f.key}')">${f.options.map(o=>`<option value="${esc(o.v)}" ${String(o.v)===String(v)?'selected':''}>${esc(o.t)}</option>`).join('')}</select>`;
+    }else if(f.type==='textarea'){
+      input=`<textarea id="f_${f.key}" rows="2" oninput="clearErr('${f.key}')" ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:''}>${esc(v)}</textarea>`;
+    }else{
+      const step=f.type==='number'?`step="${f.step||'0.01'}" inputmode="decimal"`:'',
+            list=f.list?`list="list_${f.key}"`:'',
+            listHtml=f.list?`<datalist id="list_${f.key}">${f.list.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>`:'';
+      input=`<input id="f_${f.key}" type="${f.type||'text'}" value="${esc(v)}" ${step} ${list} oninput="clearErr('${f.key}')" ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:''}/>${listHtml}`;
+    }
+    return `<label class="fld" id="fld_${f.key}"><span class="lt">${esc(f.label)}${f.required?' <span style="color:var(--danger)">*</span>':''}</span>${input}
+      ${f.help?`<span class="help">💡 ${esc(f.help)}</span>`:''}<span class="err" id="err_${f.key}"></span></label>`;
+  };
+  /* group consecutive half-fields into a 2-column row */
+  let body='',i=0;
+  while(i<fields.length){
+    const f=fields[i];
+    if(f.half && fields[i+1] && fields[i+1].half){ body+=`<div class="row2">${renderField(f)}${renderField(fields[i+1])}</div>`; i+=2; }
+    else { body+=renderField(f); i++; }
+  }
+  openModal(`
+    <h3>${esc(title)}</h3>
+    <div class="body">${body}</div>
+    <div class="foot">
+      <span class="help no-print" style="align-self:center;color:var(--muted)"><span class="kbd">Enter</span> ${L('सेव','save')} · <span class="kbd">Esc</span> ${L('बंद','close')}</span>
+      <div class="spacer"></div>
+      <button class="btn ghost" onclick="closeModal()">${L('रद्द','Cancel')}</button>
+      <button class="btn" onclick="submitForm()">${esc(opts.saveLabel||L('💾 सेव करें','💾 Save'))}</button>
+    </div>`, opts.wide);
+  const first=document.querySelector('#modalBox input,#modalBox select,#modalBox textarea'); if(first) setTimeout(()=>first.focus(),30);
+}
+function clearErr(k){ const l=document.getElementById('fld_'+k); if(l)l.classList.remove('bad'); }
+function setErr(k,msg){ const l=document.getElementById('fld_'+k),e=document.getElementById('err_'+k); if(l)l.classList.add('bad'); if(e)e.textContent=msg; }
+function submitForm(){
+  const box=document.getElementById('modalBox'); const out={};
+  box.querySelectorAll('[id^="f_"]').forEach(el=>{ out[el.id.slice(2)]=el.value.trim(); });
+  let ok=true,firstBad=null;
+  (_formFields||[]).forEach(f=>{
+    const val=out[f.key];
+    if(f.required && (val==null||val==='')){ setErr(f.key,L('यह ज़रूरी है','Required')); ok=false; firstBad=firstBad||f.key; return; }
+    if(f.type==='number' && val!==''){
+      const raw=String(val).replace(/[, ₹]/g,'');
+      if(isNaN(parseFloat(raw))){ setErr(f.key,L('सही संख्या डालें','Enter a valid number')); ok=false; firstBad=firstBad||f.key; }
+      else if(!f.allowNeg && num(val)<0){ setErr(f.key,L('रकम ऋणात्मक नहीं हो सकती','Cannot be negative')); ok=false; firstBad=firstBad||f.key; }
+    }
+    if(f.type==='date' && f.required && val && isNaN(new Date(val).getTime())){ setErr(f.key,L('सही तारीख़ डालें','Enter a valid date')); ok=false; firstBad=firstBad||f.key; }
+  });
+  if(!ok){ const el=document.getElementById('f_'+firstBad); if(el)el.focus(); return; }
+  if(_formCb) _formCb(out);
+}
+
+/* ---------- router ---------- */
+const VIEWS={dashboard:renderDashboard,income:renderIncome,registry:renderRegistry,pending:renderPending,ledger:renderLedger,salary:renderSalary,bank:renderBank,reports:renderReports,backup:renderBackup};
+function showView(v){ state.view=v; document.querySelector('nav.side').classList.remove('open'); render(); }
+function updatePendingPill(){
+  const cnt=outstandingCustomers().length + pendingRegistriesUnlinked().length;
+  const p=document.getElementById('pendingPill');
+  if(p){ if(cnt>0){ p.textContent=cnt; p.style.display=''; } else p.style.display='none'; }
+}
+function render(){
+  clearBalCache(); captureFocus();
+  document.querySelectorAll('nav.side a').forEach(a=>{
+    const active=a.dataset.view===state.view;
+    a.classList.toggle('active',active);
+    a.setAttribute('aria-current',active?'page':'false');
+  });
+  updatePendingPill();
+  let host;
+  if(!storageOK){
+    document.getElementById('content').innerHTML=
+      `<div class="warnbar">${L('⚠️ इस ब्राउज़र में डेटा अपने-आप सेव नहीं हो पा रहा (localStorage बंद/भरा है)। कृपया बैकअप/सेटिंग से डेटा एक्सपोर्ट करते रहें।','⚠️ This browser is not saving data automatically. Please export your data regularly from Backup/Settings.')}</div><div id="viewbody"></div>`;
+    host=document.getElementById('viewbody');
+  } else host=document.getElementById('content');
+  VIEWS[state.view](host);
+  restoreFocus();
+}
+
+/* ---------- helpers: stale dues & chart ---------- */
+function stalePendingItems(){
+  const stale=[];
+  const t=today();
+  DB.registryDocs.forEach(r=>{
+    if(registryDue(r)>0 && daysBetween(r.date,t)>30) stale.push({type:'reg',name:(r.party1||r.party2||r.docNo),date:r.date,amount:registryDue(r),id:r.id});
+  });
+  DB.customers.forEach(c=>{
+    const bal=customerBalance(c.id);
+    if(bal>0){
+      const lastEntry=DB.ledgerEntries.filter(e=>e.customerId===c.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      if(!lastEntry || daysBetween(lastEntry.date,t)>30) stale.push({type:'ledger',name:c.name,date:lastEntry?lastEntry.date:c.createdAt?new Date(c.createdAt).toISOString().slice(0,10):t,amount:bal,id:c.id});
+    }
+  });
+  return stale.sort((a,b)=>b.amount-a.amount);
+}
+function drawTrendChart(canvasId){
+  const canvas=document.getElementById(canvasId); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const d7=Array.from({length:7},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-(6-i)); return d.toISOString().slice(0,10); });
+  const inc=d7.map(d=>sum(DB.transactions.filter(x=>x.date===d&&x.type==='income')));
+  const exp=d7.map(d=>sum(DB.transactions.filter(x=>x.date===d&&x.type==='expense')));
+  const max=Math.max(...inc,...exp,1);
+  const W=canvas.width, H=canvas.height, P=22, barW=(W-2*P)/7*0.35, gap=(W-2*P)/7;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg')||'#eef1f8';
+  ctx.fillRect(0,0,W,H);
+  d7.forEach((d,i)=>{
+    const x=P+i*gap+gap*0.1;
+    const hI=(inc[i]/max)*(H-2*P), hE=(exp[i]/max)*(H-2*P);
+    ctx.fillStyle='#2f9e7e'; ctx.fillRect(x,H-P-hI,barW,hI);
+    ctx.fillStyle='#d6455b'; ctx.fillRect(x+barW+2,H-P-hE,barW,hE);
+    ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--muted')||'#67718a';
+    ctx.font='10px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(d.slice(5),x+barW,H-6);
+  });
+  ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--ink')||'#1b2230';
+  ctx.font='bold 11px sans-serif'; ctx.textAlign='left';
+  ctx.fillText('▲ '+L('आय','Income'),P,14); ctx.fillStyle='#d6455b'; ctx.fillText('▲ '+L('खर्च','Expense'),P+90,14);
+}
+
+/* ---------- Global Search ---------- */
+function doGlobalSearch(q){
+  q=String(q).trim().toLowerCase();
+  if(!q){ state.view='dashboard'; render(); return; }
+  const results=[];
+  DB.customers.forEach(c=>{ if(c.name.toLowerCase().includes(q)||c.phone.includes(q)) results.push({type:'customer',name:c.name,subtitle:c.phone,action:()=>{ state.view='ledger'; state.selectedCustomer=c.id; render(); }}); });
+  DB.registryDocs.forEach(r=>{ if((r.docNo||'').toLowerCase().includes(q)||(r.party1||'').toLowerCase().includes(q)||(r.party2||'').toLowerCase().includes(q)||(r.property||'').toLowerCase().includes(q)) results.push({type:'registry',name:r.docNo||'-',subtitle:(r.party1||'')+' '+(r.property||''),action:()=>{ state.view='registry'; render(); }}); });
+  DB.transactions.forEach(t=>{ if((t.category||'').toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q)) results.push({type:'tx',name:(t.category||'-'),subtitle:fmtDate(t.date)+' '+money(t.amount),action:()=>{ state.view='income'; render(); }}); });
+  const el=document.getElementById('content');
+  el.innerHTML=`<div class="pagehead"><h2>🔍 ${L('खोज के नतीजे','Search Results')}</h2><div class="spacer"></div><button class="btn ghost" onclick="document.getElementById('globalSearch').value='';doGlobalSearch('')">${L('बंद','Close')}</button></div>
+    ${results.length? tableHTML([L('प्रकार','Type'),L('नाम/संख्या','Name/No.'),L('विवरण','Details'),''],
+      results.map(r=>[esc({customer:'👤',registry:'📑',tx:'💵'}[r.type]),esc(r.name),esc(r.subtitle),
+        `<button class="btn ghost sm" onclick="(${r.action.toString()})()">${L('खोलें','Open')}</button>`]))
+      : emptyHTML(L('कुछ नहीं मिला।','Nothing found.'))}`;
+}
+
+/* ---------- Today's Follow-ups ---------- */
+function todayFollowUps(){
+  const t=today();
+  const list=[];
+  DB.registryDocs.forEach(r=>{ if(!r.archived && registryDue(r)>0 && r.followUpDate===t) list.push({type:'reg',text:(r.party1||r.docNo)+' — '+money(registryDue(r)),id:r.id}); });
+  DB.customers.forEach(c=>{ if(customerBalance(c.id)>0 && c.followUpDate===t) list.push({type:'cust',text:c.name+' — '+money(customerBalance(c.id)),id:c.id}); });
+  return list;
+}
+
+/* ---------- Customer Statement (Print / WhatsApp) ---------- */
+function customerStatement(cid){
+  const c=byId(DB.customers,cid); if(!c)return;
+  const entries=DB.ledgerEntries.filter(e=>e.customerId===cid).sort((a,b)=>b.date.localeCompare(a.date));
+  const bal=customerBalance(cid);
+  const rows=entries.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.type==='charge'?L('बकाया जोड़ा','Due added'):L('पैसे मिले','Payment received')}</td><td class="num">${e.type==='charge'?money(e.amount):money(-e.amount)}</td><td>${esc(e.note||'')}</td></tr>`).join('');
+  const regLinks=DB.registryDocs.filter(r=>r.customerId===cid && !r.archived).map(r=>`<tr><td>${esc(r.docNo)}</td><td>${fmtDate(r.date)}</td><td>${esc(r.party1)} → ${esc(r.party2)}</td><td class="num">${money(registryDue(r))}</td></tr>`).join('');
+  const html=`${shopHeaderHTML()}
+    <h2 style="text-align:center;margin-top:10px">${L('ग्राहक विवरण रिपोर्ट','Customer Statement')}</h2>
+    <div style="margin:14px 0"><b>${esc(c.name)}</b><br>${esc(c.phone)}<br>${esc(c.address||'')}</div>
+    <h4>${L('उधार खाता','Ledger')}</h4>
+    <table><thead><tr><th>${L('तारीख़','Date')}</th><th>${L('विवरण','Details')}</th><th class="num">${L('रकम','Amount')}</th><th>${L('नोट','Note')}</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="tot" style="margin-top:8px">${L('बकाया शेष','Balance Due')}: ${money(bal)}</div>
+    ${regLinks?`<h4 style="margin-top:18px">${L('रजिस्ट्री बकाया','Registry Dues')}</h4><table><thead><tr><th>${L('नंबर','No.')}</th><th>${L('तारीख़','Date')}</th><th>${L('पक्षकार','Parties')}</th><th class="num">${L('बकाया','Due')}</th></tr></thead><tbody>${regLinks}</tbody></table>`:''}
+    <div style="margin-top:20px;font-size:13px;color:#555;text-align:center">${L('यह कंप्यूटर-जनित रिपोर्ट है।','This is a computer-generated statement.')}</div>`;
+  return html;
+}
+function printCustomerStatement(cid){ printDoc(L('ग्राहक विवरण','Customer Statement'), customerStatement(cid)); }
+function shareStatementWhatsApp(cid){
+  const c=byId(DB.customers,cid); if(!c) return;
+  const bal=customerBalance(cid);
+  const regDue=DB.registryDocs.filter(r=>r.customerId===cid&&!r.archived).reduce((s,r)=>s+registryDue(r),0);
+  const total=bal+regDue;
+  const text=`${DB.settings.shopName||'Registry Shop'}%0A%0A${c.name}%0A${L('बकाया शेष','Balance Due')}: ${money(total)}%0A%0A${L('कृपया भुगतान करें।','Please make payment.')}`;
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+/* ---------- WhatsApp Share Receipt ---------- */
+function shareReceiptWhatsApp(docId){
+  const d=byId(DB.registryDocs,docId); if(!d)return;
+  const due=registryDue(d);
+  const text=`${DB.settings.shopName||'Registry Shop'}%0A%0A${L('रसीद','Receipt')}: ${d.docNo}%0A${fmtDate(d.date)}%0A${esc(d.party1)} → ${esc(d.party2)}%0A${esc(d.property||'')}%0A%0A${L('सेवा शुल्क','Service Charge')}: ${money(d.serviceCharge)}%0A${L('मिला','Received')}: ${money(d.received)}%0A${L('बकाया','Due')}: ${money(due)}%0A%0A${L('धन्यवाद!','Thank you!')}`;
+  window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+/* ---------- Phone Validation ---------- */
+function validatePhone(phone){
+  const p=String(phone).replace(/\D/g,'');
+  return p.length===10 && /^[6-9]/.test(p);
+}
+
+/* ---------- Category Management ---------- */
+function manageCategories(){
+  const inc=DB.settings.incomeCategories||['Registry Fee','Consultation','Stamp Sale','Other'];
+  const exp=DB.settings.expenseCategories||['Rent','Electricity','Salary','Stationery','Travel','Other'];
+  openModal(`<h3>${L('श्रेणी प्रबंधन','Category Management')}</h3>
+    <div class="body">
+      <h4 style="margin-top:0">${L('आय श्रेणियाँ','Income Categories')}</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${inc.map(c=>`<span class="badge income" style="cursor:pointer" onclick="removeCategory('income','${esc(c)}')">${esc(c)} ✕</span>`).join('')}</div>
+      <div class="row2"><input id="newIncCat" placeholder="${L('नई श्रेणी','New category')}"><button class="btn" onclick="addCategory('income',document.getElementById('newIncCat').value);document.getElementById('newIncCat').value=''">${L('जोड़ें','Add')}</button></div>
+      <h4 style="margin-top:18px">${L('खर्च श्रेणियाँ','Expense Categories')}</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${exp.map(c=>`<span class="badge expense" style="cursor:pointer" onclick="removeCategory('expense','${esc(c)}')">${esc(c)} ✕</span>`).join('')}</div>
+      <div class="row2"><input id="newExpCat" placeholder="${L('नई श्रेणी','New category')}"><button class="btn" onclick="addCategory('expense',document.getElementById('newExpCat').value);document.getElementById('newExpCat').value=''">${L('जोड़ें','Add')}</button></div>
+    </div>
+    <div class="foot"><button class="btn" onclick="closeModal()">${L('ठीक','OK')}</button></div>`);
+}
+function addCategory(type,name){
+  name=String(name).trim(); if(!name)return;
+  const key=type==='income'?'incomeCategories':'expenseCategories';
+  const arr=DB.settings[key]||[];
+  if(!arr.includes(name)){ arr.push(name); DB.settings[key]=arr; save(); render(); toast(L('श्रेणी जुड़ी','Category added'),{type:'good'}); }
+}
+function removeCategory(type,name){
+  const key=type==='income'?'incomeCategories':'expenseCategories';
+  DB.settings[key]=(DB.settings[key]||[]).filter(c=>c!==name); save(); render(); manageCategories();
+}
+
+/* ---------- Archive Registry ---------- */
+function archiveRegistry(id){
+  const r=byId(DB.registryDocs,id); if(!r) return;
+  r.archived=true; save(); render(); toast(L('रजिस्ट्री आर्काइव हो गई','Registry archived'),{type:'good'});
+}
+function unarchiveRegistry(id){
+  const r=byId(DB.registryDocs,id); if(!r) return;
+  r.archived=false; save(); render(); toast(L('रजिस्ट्री वापस आ गई','Registry restored'),{type:'good'});
+}
+
+/* ============================================================
+                         DASHBOARD
+   ============================================================ */
+function renderDashboard(el){
+  const t=today(),m=curMonth(),tx=DB.transactions;
+  const dayIn=sum(tx.filter(x=>x.date===t&&x.type==='income'));
+  const dayOut=sum(tx.filter(x=>x.date===t&&x.type==='expense'));
+  const monIn=sum(tx.filter(x=>x.date.startsWith(m)&&x.type==='income'));
+  const monOut=sum(tx.filter(x=>x.date.startsWith(m)&&x.type==='expense'));
+  const cashIn=sum(tx.filter(x=>x.date===t&&x.type==='income'&&(x.mode==='cash'||!x.mode)));
+  const cashOut=sum(tx.filter(x=>x.date===t&&x.type==='expense'&&(x.mode==='cash'||!x.mode)));
+  const ledgerDue=DB.customers.reduce((s,c)=>s+Math.max(0,customerBalance(c.id)),0);
+  const regDue=pendingRegistriesUnlinked().reduce((s,r)=>s+registryDue(r),0);
+  const bankBal=DB.bankAccounts.reduce((s,a)=>s+accountBalance(a.id),0);
+  const recent=[...tx].sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0)).slice(0,8);
+  const needBackup=backupOverdueDays();
+  const stale=stalePendingItems().slice(0,5);
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('डैशबोर्ड','Dashboard')}</h2><div class="sub">${esc(DB.settings.shopName||L('अपनी दुकान का नाम सेटिंग में डालें','Set your shop name in Settings'))} · ${fmtDate(t)}</div></div><div class="spacer"></div>
+      <button class="btn big" onclick="addTx('income')">＋ ${L('आय','Income')}</button>
+      <button class="btn big red" onclick="addTx('expense')">＋ ${L('खर्च','Expense')}</button>
+    </div>
+    ${(DB.transactions.length||DB.registryDocs.length||DB.customers.length)?'':`<div class="hint">👆 ${L('यहाँ से शुरू करें: ऊपर हरे <b>＋ आय</b> / लाल <b>＋ खर्च</b> बटन से आज का पहला लेन-देन जोड़ें। समझने के लिए नीचे <b>डेमो डेटा</b> भी भर सकते हैं। ऊपर <b>❔</b> पर पूरी मदद है।','👆 Start here: add your first entry with the green <b>＋ Income</b> / red <b>＋ Expense</b> buttons above. You can also load <b>demo data</b> below to explore. Full help is under <b>❔</b> at the top.')}</div>`}
+    ${needBackup!==null?`<div class="alertbar"><span>💾</span><span>${needBackup===0?L('आपने अभी तक बैकअप नहीं लिया।','You have never downloaded a backup.'):L('आख़िरी बैकअप '+needBackup+' दिन पहले हुआ था।','Last backup was '+needBackup+' days ago.')} ${L('डेटा सुरक्षित रखने के लिए बैकअप डाउनलोड करें।','Download a backup to keep your data safe.')}</span><div class="spacer"></div><button class="btn sm green" onclick="exportBackup()">⬇️ ${L('बैकअप','Backup')}</button></div>`:''}
+    ${stale.length?`<div class="alertbar danger"><span>⏰</span><span><b>${L('पुराना बकाया ('+stale.length+')','Stale dues ('+stale.length+')')}</b> — ${stale.map(s=>esc(s.name)+' '+money(s.amount)).join(', ')} ${L('— जल्द वसूली करें!','— collect soon!')}</span><div class="spacer"></div><button class="btn sm" onclick="showView('pending')">${L('देखें','View')}</button></div>`:''}
+    ${(()=>{ const fu=todayFollowUps(); return fu.length?`<div class="alertbar" style="background:#e6f6ef;border-color:#b8dfc9;color:#1d7a57"><span>📌</span><span><b>${L('आज फॉलो-अप ('+fu.length+')','Follow-ups today ('+fu.length+')')}</b> — ${fu.map(f=>esc(f.text)).join(' · ')}</span><div class="spacer"></div><button class="btn sm green" onclick="showView('pending')">${L('देखें','View')}</button></div>`:''; })()}
+    <div class="cards">
+      <div class="card stat good" role="region" aria-label="${L('आज की आय','Today Income')}"><span class="lbl">📥 ${L('आज की आय','Today Income')}</span><span class="val">${money(dayIn)}</span></div>
+      <div class="card stat bad" role="region" aria-label="${L('आज का खर्च','Today Expense')}"><span class="lbl">📤 ${L('आज का खर्च','Today Expense')}</span><span class="val">${money(dayOut)}</span></div>
+      <div class="card stat ${dayIn-dayOut>=0?'good':'bad'}" role="region" aria-label="${L('आज का शुद्ध','Today Net')}"><span class="lbl">📊 ${L('आज का शुद्ध','Today Net')}</span><span class="val">${money(dayIn-dayOut)}</span></div>
+      <div class="card stat brand" role="region" aria-label="${L('आज नकद हाथ में','Today Cash in Hand')}"><span class="lbl">💵 ${L('आज नकद हाथ में','Today Cash in Hand')}</span><span class="val">${money(cashIn-cashOut)}</span></div>
+      <div class="card stat ${monIn-monOut>=0?'good':'bad'}" role="region" aria-label="${L('इस महीने मुनाफ़ा','This Month Profit')}"><span class="lbl">📅 ${L('इस महीने मुनाफ़ा','This Month Profit')}</span><span class="val">${money(monIn-monOut)}</span></div>
+      <div class="card stat warn" role="region" aria-label="${L('कुल बकाया वसूली','Total Pending Dues')}"><span class="lbl">⏳ ${L('कुल बकाया वसूली','Total Pending Dues')}</span><span class="val">${money(ledgerDue+regDue)}</span></div>
+      <div class="card stat" role="region" aria-label="${L('बैंक बैलेंस','Bank Balance')}"><span class="lbl">🏦 ${L('बैंक बैलेंस','Bank Balance')}</span><span class="val">${money(bankBal)}</span></div>
+      <div class="card stat" role="region" aria-label="${L('लंबित रजिस्ट्री','Pending Registries')}"><span class="lbl">📑 ${L('लंबित रजिस्ट्री','Pending Registries')}</span><span class="val">${pendingRegistriesUnlinked().length}</span></div>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:18px">
+      <h3 style="margin:0 0 10px;font-size:15px">${L('पिछले 7 दिन — आय vs खर्च','Last 7 days — Income vs Expense')}</h3>
+      <canvas id="dashChart" width="720" height="160" style="width:100%;max-width:720px;height:160px"></canvas>
+    </div>
+    <div class="pagehead" style="margin-bottom:10px"><h3 style="margin:0;font-size:16px">${L('हाल के लेन-देन','Recent Transactions')}</h3><div class="spacer"></div>
+      <button class="btn ghost sm" onclick="printDaySummary()">🖨️ ${L('आज का सारांश प्रिंट','Print Day Summary')}</button></div>
+    ${recent.length? tableHTML(
+      [L('तारीख़','Date'),L('प्रकार','Type'),L('श्रेणी','Category'),L('तरीका','Mode'),L('रकम','Amount')],
+      recent.map(x=>[fmtDate(x.date),typeBadge(x.type),esc(x.category||'-'),modeLabel(x.mode),{num:true,v:money(x.amount)}])
+    ) : emptyHTML(L('अभी कोई लेन-देन नहीं। ऊपर हरे/लाल बटन से जोड़ें या नीचे डेमो डेटा भरें।','No transactions yet. Add with the buttons above, or load demo data below.'))}
+    ${DB.transactions.length===0?`<div style="margin-top:14px"><button class="btn sec" onclick="loadDemo()">🎁 ${L('डेमो डेटा भरें (देखने के लिए)','Load demo data')}</button></div>`:''}
+  `;
+  setTimeout(()=>drawTrendChart('dashChart'),0);
+}
+function typeBadge(t){ return `<span class="badge ${t}">${t==='income'?L('आय','Income'):L('खर्च','Expense')}</span>`; }
+function modeLabel(m){ return ({cash:L('नकद','Cash'),bank:L('बैंक','Bank'),upi:'UPI'})[m]||esc(m||'-'); }
+const MODE_OPTS=()=>[{v:'cash',t:L('नकद','Cash')},{v:'upi',t:'UPI'},{v:'bank',t:L('बैंक','Bank')}];
+
+/* ============================================================
+                     INCOME / EXPENSE
+   ============================================================ */
+const INCOME_CATS=()=>DB.settings.incomeCategories||[L('रजिस्ट्री फ़ीस','Registry Fee'),L('टाइपिंग','Typing'),L('फ़ोटो-कॉपी','Photocopy'),L('स्टांप विक्रय','Stamp Sale'),L('नोटरी','Notary')];
+const EXPENSE_CATS=()=>DB.settings.expenseCategories||[L('किराया','Rent'),L('बिजली बिल','Electricity'),L('सैलरी','Salary'),L('स्टेशनरी','Stationery')];
+function findTx(id){ const x=byId(DB.transactions,id); return x?{...x}:{}; }
+function addTx(type,vals){
+  const cats=(type==='income'?INCOME_CATS():EXPENSE_CATS());
+  formModal(vals&&vals.id?(type==='income'?L('आय एडिट','Edit Income'):L('खर्च एडिट','Edit Expense')):(type==='income'?L('नई आय जोड़ें','Add Income'):L('नया खर्च जोड़ें','Add Expense')),[
+    {key:'date',label:L('तारीख़','Date'),type:'date',value:today(),required:true,half:true},
+    {key:'amount',label:L('रकम','Amount'),type:'number',required:true,placeholder:'0',half:true,help:L('सिर्फ़ संख्या, जैसे 500','Numbers only, e.g. 500')},
+    {key:'category',label:L('श्रेणी','Category'),type:'select',options:cats.map(c=>({v:c,t:c})),value:vals&&vals.id?vals.category:(cats[0]||''),half:true},
+    {key:'mode',label:L('भुगतान का तरीका','Payment Mode'),type:'select',options:MODE_OPTS(),value:'cash',half:true},
+    {key:'note',label:L('नोट (वैकल्पिक)','Note (optional)'),type:'textarea'},
+  ], vals||{}, o=>{
+    if(vals&&vals.id){ withUndo(L('एंट्री बदली','Entry updated'),()=>Object.assign(byId(DB.transactions,vals.id),{date:o.date,category:o.category,amount:num(o.amount),mode:o.mode,note:o.note})); }
+    else { DB.transactions.push({id:uid(),type,date:o.date||today(),category:o.category,amount:num(o.amount),mode:o.mode,note:o.note,createdAt:Date.now()}); audit(L((type==='income'?'आय':'खर्च')+' जोड़ा ','Added '+type+' ')+money(o.amount)); save(); render(); toast(L('जुड़ गया','Added'),{type:'good'}); }
+    closeModal();
+  });
+}
+function delTx(id){ withUndo(L('लेन-देन हटाया','Transaction deleted'),()=>{ DB.transactions=DB.transactions.filter(t=>t.id!==id); }); }
+function setTxFilter(k,v){ state.txFilter=state.txFilter||{from:'',to:'',type:'all',q:''}; state.txFilter[k]=v; resetPage('income'); render(); }
+function quickTxRange(p){
+  const t=today();
+  state.txFilter=state.txFilter||{from:'',to:'',type:'all',q:''};
+  if(p==='today'){ state.txFilter.from=t; state.txFilter.to=t; }
+  else if(p==='week'){ const d=new Date(); d.setDate(d.getDate()-d.getDay()); state.txFilter.from=d.toISOString().slice(0,10); state.txFilter.to=t; }
+  else { state.txFilter.from=t.slice(0,7)+'-01'; state.txFilter.to=t; }
+  resetPage('income'); render();
+}
+function renderIncome(el){
+  const f=state.txFilter||{from:'',to:'',type:'all',q:''};
+  let rows=[...DB.transactions];
+  if(f.from) rows=rows.filter(x=>x.date>=f.from);
+  if(f.to) rows=rows.filter(x=>x.date<=f.to);
+  if(f.type!=='all') rows=rows.filter(x=>x.type===f.type);
+  if(f.q){ const q=f.q.toLowerCase(); rows=rows.filter(x=>((x.category||'')+' '+(x.note||'')).toLowerCase().includes(q)); }
+  rows.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+  const tin=sum(rows.filter(x=>x.type==='income')),tout=sum(rows.filter(x=>x.type==='expense'));
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('दैनिक आय-खर्च','Daily Income / Expense')}</h2><div class="sub">${L('रोज़ की कमाई और खर्च यहाँ दर्ज करें','Record daily earnings and expenses here')}</div></div><div class="spacer"></div>
+      <button class="btn" onclick="addTx('income')">＋ ${L('आय','Income')}</button>
+      <button class="btn red" onclick="addTx('expense')">＋ ${L('खर्च','Expense')}</button>
+    </div>
+    <div class="toolbar">
+      <input id="srch_income" class="search" placeholder="🔍 ${L('श्रेणी/नोट खोजें','Search category/note')}" value="${esc(f.q||'')}" oninput="setTxFilter('q',this.value)">
+      <div class="grp"><span>${L('से','From')}</span><input type="date" style="width:auto;border:0;padding:4px" value="${f.from||''}" onchange="setTxFilter('from',this.value)">
+      <span>${L('तक','To')}</span><input type="date" style="width:auto;border:0;padding:4px" value="${f.to||''}" onchange="setTxFilter('to',this.value)"></div>
+      <div class="grp" style="gap:4px"><button class="btn ghost sm" style="padding:4px 8px" onclick="quickTxRange('today')">${L('आज','Today')}</button><button class="btn ghost sm" style="padding:4px 8px" onclick="quickTxRange('week')">${L('इस सप्ताह','This Week')}</button><button class="btn ghost sm" style="padding:4px 8px" onclick="quickTxRange('month')">${L('इस महीने','This Month')}</button></div>
+      <select style="width:auto" onchange="setTxFilter('type',this.value)">
+        <option value="all" ${f.type==='all'?'selected':''}>${L('सभी','All')}</option>
+        <option value="income" ${f.type==='income'?'selected':''}>${L('केवल आय','Income only')}</option>
+        <option value="expense" ${f.type==='expense'?'selected':''}>${L('केवल खर्च','Expense only')}</option>
+      </select>
+      <button class="btn ghost sm" onclick="state.txFilter=null;resetPage('income');render()">${L('रीसेट','Reset')}</button>
+      <div class="spacer"></div>
+      <span class="badge income">${L('आय','In')}: ${money(tin)}</span>
+      <span class="badge expense">${L('खर्च','Out')}: ${money(tout)}</span>
+      <span class="badge blue">${L('शेष','Net')}: ${money(tin-tout)}</span>
+    </div>
+    ${DB.transactions.length? paginatedTable('income',
+      [L('तारीख़','Date'),L('प्रकार','Type'),L('श्रेणी','Category'),L('तरीका','Mode'),L('नोट','Note'),L('रकम','Amount'),''],
+      rows.map(x=>[fmtDate(x.date),typeBadge(x.type),esc(x.category||'-'),modeLabel(x.mode),esc(x.note||''),
+        {num:true,v:money(x.amount)},
+        actBtns([['✏️',`addTx('${x.type}', findTx('${x.id}'))`,L('एडिट','Edit')],['🗑️',`delTx('${x.id}')`,L('हटाएँ','Delete')]])])
+    ) : emptyHTML(L('अभी कोई लेन-देन नहीं।','No transactions yet.'))}
+  `;
+}
+
+/* ============================================================
+                  REGISTRY (Sampada docs)
+   ============================================================ */
+const DEED_TYPES=[
+  {v:'sale',t:{hi:'विक्रय (Sale)',en:'Sale Deed'}},
+  {v:'agreement',t:{hi:'अनुबंध (Agreement)',en:'Agreement'}},
+  {v:'gift',t:{hi:'दान (Gift)',en:'Gift Deed'}},
+  {v:'mortgage',t:{hi:'बंधक (Mortgage)',en:'Mortgage'}},
+  {v:'lease',t:{hi:'पट्टा (Lease)',en:'Lease'}},
+  {v:'will',t:{hi:'वसीयत (Will)',en:'Will'}},
+  {v:'partition',t:{hi:'बंटवारा (Partition)',en:'Partition'}},
+  {v:'poa',t:{hi:'पावर ऑफ़ अटॉर्नी',en:'Power of Attorney'}},
+  {v:'affidavit',t:{hi:'शपथ-पत्र (Affidavit)',en:'Affidavit'}},
+  {v:'other',t:{hi:'अन्य',en:'Other'}},
+];
+function deedLabel(v){ const d=DEED_TYPES.find(x=>x.v===v); return d?d.t[state.lang]:esc(v||'-'); }
+function registryDue(r){ return Math.max(0, Number(r.serviceCharge||0)-Number(r.received||0)); }
+function regPayStatus(r){ const due=registryDue(r); if(Number(r.serviceCharge)<=0) return 'na'; if(due<=0) return 'paid'; if(Number(r.received)>0) return 'part'; return 'unpaid'; }
+function pendingRegistries(){ return DB.registryDocs.filter(r=>registryDue(r)>0); }
+function pendingRegistriesUnlinked(){ return DB.registryDocs.filter(r=>registryDue(r)>0 && !r.linkToLedger); }
+function nextDocNo(){ let mx=0; DB.registryDocs.forEach(r=>{ const m=String(r.docNo||'').match(/(\d+)\s*$/); if(m) mx=Math.max(mx,parseInt(m[1],10)); }); return 'REG-'+String(mx+1).padStart(4,'0'); }
+function findDoc(id){ const d=byId(DB.registryDocs,id); return d?{...d}:{}; }
+function setRegFilter(k,v){ state.regFilter=state.regFilter||{q:'',status:'all',deed:'all'}; state.regFilter[k]=v; resetPage('registry'); render(); }
+
+function renderRegistry(el){
+  const f=state.regFilter||{q:'',status:'all',deed:'all'};
+  let docs=[...DB.registryDocs];
+  if(f.q){ const q=f.q.toLowerCase(); docs=docs.filter(d=>((d.docNo||'')+' '+(d.party1||'')+' '+(d.party2||'')+' '+(d.property||'')+' '+(d.applicantPhone||'')).toLowerCase().includes(q)); }
+  if(f.status==='pending') docs=docs.filter(d=>d.status!=='done');
+  if(f.status==='done') docs=docs.filter(d=>d.status==='done');
+  if(f.status==='due') docs=docs.filter(d=>registryDue(d)>0);
+  if(f.deed!=='all') docs=docs.filter(d=>d.deedType===f.deed);
+  docs.sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+  const totFee=docs.reduce((s,d)=>s+num(d.serviceCharge),0), totDue=docs.reduce((s,d)=>s+registryDue(d),0);
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('रजिस्ट्री दस्तावेज़','Registry Documents')}</h2><div class="sub">${L('हर रजिस्ट्री/दस्तावेज़ का पूरा रिकॉर्ड और रसीद','Full record and receipt for each registry/document')}</div></div><div class="spacer"></div>
+      <button class="btn" onclick="addDoc()">＋ ${L('नया दस्तावेज़','New Document')}</button>
+    </div>
+    <div class="hint">${L('<b>सरकारी शुल्क</b> (स्टांप ड्यूटी + रजिस्ट्रेशन फ़ीस) सरकार का पैसा है। <b>सेवा शुल्क</b> आपकी कमाई है — यही आय में जुड़ता है। "मिला" = ग्राहक ने आपको कितना दिया।','<b>Govt charges</b> (stamp duty + registration fee) are government money. <b>Service charge</b> is your earning. "Received" = how much the customer paid you.')}</div>
+    <div class="toolbar">
+      <input id="srch_reg" class="search" placeholder="🔍 ${L('नाम/नंबर/संपत्ति खोजें','Search name/no./property')}" value="${esc(f.q||'')}" oninput="setRegFilter('q',this.value)">
+      <select style="width:auto" onchange="setRegFilter('status',this.value)">
+        <option value="all" ${f.status==='all'?'selected':''}>${L('सभी स्थिति','All status')}</option>
+        <option value="pending" ${f.status==='pending'?'selected':''}>${L('लंबित','Pending')}</option>
+        <option value="done" ${f.status==='done'?'selected':''}>${L('पूर्ण','Completed')}</option>
+        <option value="due" ${f.status==='due'?'selected':''}>${L('बकाया सेवा-शुल्क','Fee due')}</option>
+      </select>
+      <select style="width:auto" onchange="setRegFilter('deed',this.value)">
+        <option value="all" ${f.deed==='all'?'selected':''}>${L('सभी प्रकार','All deeds')}</option>
+        ${DEED_TYPES.map(d=>`<option value="${d.v}" ${f.deed===d.v?'selected':''}>${d.t[state.lang]}</option>`).join('')}
+      </select>
+      <div class="spacer"></div>
+      <span class="badge blue">${L('सेवा-शुल्क','Service fee')}: ${money(totFee)}</span>
+      <span class="badge warn">${L('बकाया','Due')}: ${money(totDue)}</span>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer"><input type="checkbox" ${state.showArchived?'checked':''} onchange="state.showArchived=this.checked;render()"> ${L('आर्काइव दिखाएँ','Show archived')}</label>
+    </div>
+    ${DB.registryDocs.filter(r=>!r.archived||state.showArchived).length? paginatedTable('registry',
+      [L('नंबर','No.'),L('तारीख़','Date'),L('प्रकार','Deed'),L('पक्षकार','Parties'),L('फॉलो-अप','Follow-up'),L('सरकारी शुल्क','Govt Charges'),L('सेवा-शुल्क','Service Fee'),L('मिला','Received'),L('बकाया','Due'),L('स्थिति','Status'),''],
+      docs.filter(d=>!d.archived||state.showArchived).map(d=>[`<b>${esc(d.docNo||'-')}</b>`,fmtDate(d.date),`<span class="badge blue">${deedLabel(d.deedType)}</span>`,
+        esc((d.party1||'-')+(d.party2?(' → '+d.party2):''))+(d.linkToLedger&&d.customerId?
+          (byId(DB.customers,d.customerId)?
+            ` <span class="badge gray" title="${L('उधार खाते में जुड़ा','Linked to Udhar')}">📒 ${esc((byId(DB.customers,d.customerId)||{}).name||'')}</span>`:
+            ` <span class="badge warn" title="${L('ग्राहक मिट गया — लिंक टूटा','Customer deleted — link broken')}">⚠️ ${L('लिंक टूटा','Broken')}</span>`):'')+(d.archived?` <span class="badge gray">${L('आर्काइव','Archived')}</span>`:''),
+        d.followUpDate?`<span style="color:var(--warn);font-size:12px">📌 ${fmtDate(d.followUpDate)}</span>`:'-',
+        {num:true,v:money(num(d.stampDuty)+num(d.regFee))},{num:true,v:money(d.serviceCharge)},{num:true,v:money(d.received)},
+        {num:true,v:registryDue(d)>0?`<span style="color:var(--danger);font-weight:700">${money(registryDue(d))}</span>`:money(0)},
+        statusCell(d),
+        actBtns([['🧾',`printReceipt('${d.id}')`,L('रसीद','Receipt')],['📤',`shareReceiptWhatsApp('${d.id}')`,L('WhatsApp','WhatsApp')],['💰',`collectReg('${d.id}')`,L('पैसे लें','Collect')],['✏️',`addDoc(findDoc('${d.id}'))`,L('एडिट','Edit')],d.archived?['📂',`unarchiveRegistry('${d.id}')`,L('वापस लाएँ','Restore')]:['📦',`archiveRegistry('${d.id}')`,L('आर्काइव','Archive')],['🗑️',`delDoc('${d.id}')`,L('हटाएँ','Delete')]])])
+    ) : emptyHTML(L('अभी कोई दस्तावेज़ नहीं। "नया दस्तावेज़" से जोड़ें।','No documents yet. Use "New Document".'))}
+  `;
+}
+function statusCell(d){
+  const ps=regPayStatus(d);
+  const st=d.status==='done'?`<span class="badge income">${L('पूर्ण','Done')}</span>`:`<span class="badge gray">${L('लंबित','Pending')}</span>`;
+  const pay= ps==='paid'?`<span class="badge income">${L('पूरा','Paid')}</span>`: ps==='part'?`<span class="badge part">${L('आंशिक','Partial')}</span>`: ps==='unpaid'?`<span class="badge warn">${L('बकाया','Unpaid')}</span>`:'';
+  return st+' '+pay;
+}
+function addDoc(vals){
+  const isEdit=vals&&vals.id;
+  const custOpts=DB.customers.map(c=>({v:c.id,t:c.name})); custOpts.unshift({v:'',t:L('— कोई नहीं —','— none —')});
+  const custNames=DB.customers.map(c=>c.name).filter(Boolean);
+  const existingDocNo=vals&&vals.docNo?vals.docNo:'';
+  formModal(isEdit?L('दस्तावेज़ एडिट','Edit Document'):L('नया रजिस्ट्री दस्तावेज़','New Registry Document'),[
+    {type:'info',label:L('<b>सरकारी शुल्क</b> (स्टांप+रजिस्ट्रेशन) सरकार का पैसा है — आपकी कमाई में नहीं गिना जाता। सिर्फ़ <b>सेवा शुल्क</b> आपकी आय है। "मिला" = सेवा-शुल्क में ग्राहक ने अब तक कितना दिया।','<b>Govt charges</b> (stamp+registration) are government money — not counted as your earning. Only the <b>service charge</b> is your income. "Received" = how much the customer has paid toward the service fee.')},
+    {key:'docNo',label:L('दस्तावेज़ नंबर','Document No.'),type:'text',value:isEdit?vals.docNo:nextDocNo(),half:true,help:L('अपने-आप बना — बदल सकते हैं','Auto — you can change it')},
+    {key:'date',label:L('तारीख़','Date'),type:'date',value:today(),required:true,half:true},
+    {key:'deedType',label:L('दस्तावेज़ का प्रकार','Deed Type'),type:'select',options:DEED_TYPES.map(d=>({v:d.v,t:d.t[state.lang]})),value:'sale',half:true},
+    {key:'status',label:L('स्थिति','Status'),type:'select',options:[{v:'pending',t:L('लंबित','Pending')},{v:'done',t:L('पूर्ण','Completed')}],value:'pending',half:true},
+    {key:'party1',label:L('पक्षकार 1 (विक्रेता/प्रथम)','Party 1 (Seller/First)'),type:'text',list:custNames,half:true,help:L('मौजूदा ग्राहकों में से चुनें या नया नाम लिखें','Pick from existing customers or type a new name')},
+    {key:'party2',label:L('पक्षकार 2 (क्रेता/द्वितीय)','Party 2 (Buyer/Second)'),type:'text',list:custNames,half:true},
+    {key:'applicantPhone',label:L('मोबाइल नंबर','Mobile No.'),type:'tel',half:true,help:L('रसीद/संपर्क के लिए','For receipt/contact')},
+    {key:'sro',label:L('उप-पंजीयक कार्यालय (SRO)','Sub-Registrar Office'),type:'text',half:true},
+    {key:'property',label:L('संपत्ति विवरण','Property Details'),type:'text',placeholder:L('जैसे: प्लॉट 12, स्कीम 54','e.g. Plot 12, Scheme 54')},
+    {key:'customerId',label:L('उधार खाते का ग्राहक','Udhar Ledger Customer'),type:'select',options:custOpts,value:isEdit?vals.customerId:'',half:true,help:L('बकाया उधार खाते में दिखाने के लिए','Pick to show due in Udhar ledger')},
+    {key:'linkToLedger',label:L('बकाया उधार खाते में जोड़ें?','Add pending to Udhar Book?'),type:'select',options:[{v:'no',t:L('नहीं','No')},{v:'yes',t:L('हाँ (बकाया उधार में जुड़ेगा)','Yes (pending goes to Udhar)')}],value:isEdit?(vals.linkToLedger?'yes':'no'):'no',half:true,help:L('चालू करने पर बकाया रकम उधार खाते में जुड़ेगी और रिपोर्ट में दोहरा गिना नहीं जाएगा।','When on, pending amount joins Udhar ledger and won\'t double-count in reports.')},
+    {key:'consideration',label:L('संपत्ति मूल्य (Consideration)','Property Value'),type:'number',half:true,help:L('सौदे की कुल कीमत','Total deal value')},
+    {key:'stampDuty',label:L('स्टांप ड्यूटी (सरकारी)','Stamp Duty (Govt)'),type:'number',half:true},
+    {key:'regFee',label:L('रजिस्ट्रेशन फ़ीस (सरकारी)','Registration Fee (Govt)'),type:'number',half:true},
+    {key:'serviceCharge',label:L('आपका सेवा शुल्क','Your Service Charge'),type:'number',half:true,help:L('यही आपकी कमाई है','This is your earning')},
+    {key:'received',label:L('ग्राहक से मिला','Received from customer'),type:'number',half:true,help:L('सेवा-शुल्क में अब तक मिला','Toward service fee so far')},
+    {key:'note',label:L('नोट','Note'),type:'textarea',half:true},
+    {key:'followUpDate',label:L('अगला फॉलो-अप तारीख़','Next Follow-up Date'),type:'date',half:true,help:L('बकाया वसूली के लिए याद दिलाएँ','Reminder for collecting due')},
+  ],vals||{},o=>{
+    const dupDoc=!isEdit && DB.registryDocs.some(r=>r.docNo===o.docNo.trim());
+    if(dupDoc){ setErr('docNo',L('यह दस्तावेज़ नंबर पहले से मौजूद है','This document number already exists')); return; }
+    const rec={docNo:o.docNo||nextDocNo(),date:o.date||today(),deedType:o.deedType,status:o.status,party1:o.party1,party2:o.party2,
+      applicantPhone:o.applicantPhone,sro:o.sro,property:o.property,consideration:num(o.consideration),
+      stampDuty:num(o.stampDuty),regFee:num(o.regFee),serviceCharge:num(o.serviceCharge),received:num(o.received),note:o.note,
+      customerId:o.customerId||'',linkToLedger:o.linkToLedger==='yes',followUpDate:o.followUpDate||'',archived:false};
+    if(isEdit){ withUndo(L('दस्तावेज़ बदला','Document updated'),()=>Object.assign(byId(DB.registryDocs,vals.id),rec)); closeModal(); }
+    else {
+      rec.id=uid(); rec.createdAt=Date.now(); DB.registryDocs.push(rec); audit(L('दस्तावेज़ जोड़ा ','Added document ')+(rec.docNo||'')); save(); render(); closeModal();
+      let linked=false;
+      if(rec.linkToLedger && rec.customerId && num(rec.serviceCharge)>num(rec.received)){
+        const due=num(rec.serviceCharge)-num(rec.received);
+        DB.ledgerEntries.push({id:uid(),customerId:rec.customerId,type:'charge',date:rec.date,amount:due,note:L('रजिस्ट्री बकाया','Registry due')+' '+rec.docNo,createdAt:Date.now()});
+        save(); render(); linked=true;
+      }
+      if(!linked && num(o.received)>0) offerRecordIncome(rec.id, num(o.received));
+      else if(!linked) toast(L('दस्तावेज़ जुड़ गया','Document added'),{type:'good'});
+      else toast(L('दस्तावेज़ जुड़ गया + उधार में बकाया दर्ज','Document added + due recorded in Udhar'),{type:'good'});
+      /* Auto-create customer from party1 if not matched */
+      const matched=DB.customers.find(c=>c.name.toLowerCase().trim()===o.party1.toLowerCase().trim());
+      if(!matched && o.party1.trim() && o.applicantPhone.trim() && !isEdit){
+        openModal(`<h3>👤 ${L('ग्राहक बनाएँ?','Create customer?')}</h3>
+          <div class="body" style="line-height:1.6">${L('"'+esc(o.party1)+'" अभी तक ग्राहक नहीं है। उधार खाते में जोड़ें?','"'+esc(o.party1)+'" is not a customer yet. Add to Udhar ledger?')}</div>
+          <div class="foot"><button class="btn ghost" onclick="closeModal();">${L('नहीं','No')}</button>
+          <button class="btn green" onclick="quickAddCustomer('${esc(o.party1)}','${esc(o.applicantPhone)}','${esc(o.property)}')">${L('हाँ, ग्राहक बनाएँ','Yes, create customer')}</button></div>`);
+      }
+    }
+  },{wide:true});
+}
+function quickAddCustomer(name,phone,address){
+  const id=uid(); DB.customers.push({id,name,phone,address,note:'',createdAt:Date.now()});
+  save(); render(); closeModal(); toast(L('ग्राहक जुड़ गया','Customer added'),{type:'good'});
+}
+function delDoc(id){ const d=byId(DB.registryDocs,id); withUndo(L('दस्तावेज़ हटाया','Document deleted')+' ('+esc(d.docNo||'')+')',()=>{ DB.registryDocs=DB.registryDocs.filter(x=>x.id!==id); }); }
+function collectReg(id){
+  const d=byId(DB.registryDocs,id); if(!d)return; const due=registryDue(d);
+  formModal(L('सेवा-शुल्क वसूली','Collect Service Fee')+' — '+esc(d.docNo||''),[
+    {key:'amount',label:L('अभी कितना मिला','Amount received now'),type:'number',required:true,value:due>0?due:'',help:L('बकाया','Due')+': '+money(due)},
+    {key:'mode',label:L('तरीका','Mode'),type:'select',options:MODE_OPTS(),value:'cash'},
+    {key:'asIncome',label:L('इसे आज की आय में जोड़ें?','Add this to today\'s income?'),type:'select',options:[{v:'yes',t:L('हाँ (सुझाव)','Yes (recommended)')},{v:'no',t:L('नहीं','No')}],value:'yes'},
+  ],{},o=>{
+    const amt=num(o.amount);
+    withUndo(L('वसूली दर्ज','Payment recorded'),()=>{
+      d.received=num(d.received)+amt;
+      if(o.asIncome==='yes') DB.transactions.push({id:uid(),type:'income',date:today(),category:L('रजिस्ट्री फ़ीस','Registry Fee'),amount:amt,mode:o.mode,note:(d.docNo||'')+' '+(d.party1||''),createdAt:Date.now()});
+      if(d.linkToLedger && d.customerId){
+        DB.ledgerEntries.push({id:uid(),customerId:d.customerId,type:'payment',date:today(),amount:amt,note:L('रजिस्ट्री वसूली','Registry collection')+' '+d.docNo,createdAt:Date.now()});
+      }
+    });
+    closeModal();
+  });
+}
+function offerRecordIncome(id,amt){
+  openModal(`<h3>🧾 ${L('आय में जोड़ें?','Record as income?')}</h3>
+    <div class="body" style="line-height:1.6">${L('ग्राहक से मिले <b>'+money(amt)+'</b> को आज की आय में जोड़ दें? इससे आपकी रिपोर्ट सही रहेगी।','Add the <b>'+money(amt)+'</b> received to today\'s income? Keeps your reports accurate.')}</div>
+    <div class="foot"><button class="btn ghost" onclick="closeModal();toast('${L('ठीक है','OK')}')">${L('नहीं','No')}</button>
+    <button class="btn green" onclick="confirmRecordIncome('${id}',${amt})">${L('हाँ, आय में जोड़ें','Yes, add to income')}</button></div>`);
+}
+function confirmRecordIncome(id,amt){
+  const d=byId(DB.registryDocs,id);
+  DB.transactions.push({id:uid(),type:'income',date:today(),category:L('रजिस्ट्री फ़ीस','Registry Fee'),amount:amt,mode:'cash',note:(d?d.docNo:'')+' '+(d?d.party1:''),createdAt:Date.now()});
+  save(); closeModal(); render(); toast(L('आय में जुड़ गया','Added to income'),{type:'good'});
+}
+function printReceipt(id){
+  const d=byId(DB.registryDocs,id); if(!d)return;
+  const govt=num(d.stampDuty)+num(d.regFee);
+  const gst=DB.settings.gstEnabled? +(num(d.serviceCharge)*num(DB.settings.gstRate)/100).toFixed(2) : 0;
+  const total=govt+num(d.serviceCharge)+gst, due=registryDue(d);
+  const row=(l,v,b)=>`<tr><td>${l}</td><td style="text-align:right${b?';font-weight:700':''}">${v}</td></tr>`;
+  printDoc(L('रसीद','Receipt')+' '+(d.docNo||''),`
+    ${shopHeaderHTML()}
+    <h3 style="margin:14px 0 6px">${L('रजिस्ट्री रसीद','Registry Receipt')}</h3>
+    <table class="kv"><tbody>
+      ${row(L('रसीद नंबर','Receipt No.'),esc(d.docNo||'-'),1)}
+      ${row(L('तारीख़','Date'),fmtDate(d.date))}
+      ${row(L('दस्तावेज़ प्रकार','Deed Type'),esc(deedLabel(d.deedType)))}
+      ${row(L('पक्षकार 1','Party 1'),esc(d.party1||'-'))}
+      ${row(L('पक्षकार 2','Party 2'),esc(d.party2||'-'))}
+      ${d.applicantPhone?row(L('मोबाइल','Mobile'),esc(d.applicantPhone)):''}
+      ${d.property?row(L('संपत्ति','Property'),esc(d.property)):''}
+      ${d.sro?row(L('उप-पंजीयक कार्यालय','SRO'),esc(d.sro)):''}
+      ${num(d.consideration)?row(L('संपत्ति मूल्य','Property Value'),money(d.consideration)):''}
+    </tbody></table>
+    <h4 style="margin:14px 0 6px">${L('शुल्क विवरण','Charges')}</h4>
+    <table class="kv"><tbody>
+      ${row(L('स्टांप ड्यूटी (सरकारी)','Stamp Duty (Govt)'),money(d.stampDuty))}
+      ${row(L('रजिस्ट्रेशन फ़ीस (सरकारी)','Registration Fee (Govt)'),money(d.regFee))}
+      ${row(L('सेवा शुल्क','Service Charge'),money(d.serviceCharge))}
+      ${gst?row(L('GST ('+num(DB.settings.gstRate)+'%)','GST ('+num(DB.settings.gstRate)+'%)'),money(gst)):''}
+      ${row('<b>'+L('कुल','Total')+'</b>','<b>'+money(total)+'</b>',1)}
+      ${row(L('प्राप्त (सेवा-शुल्क में)','Received (toward fee)'),money(d.received))}
+      ${row('<b>'+L('सेवा-शुल्क बकाया','Service Fee Due')+'</b>','<b>'+money(due)+'</b>',1)}
+    </tbody></table>
+    <div style="margin-top:36px;display:flex;justify-content:space-between">
+      <div>${L('ग्राहक हस्ताक्षर','Customer Signature')}</div>
+      <div>${L('अधिकृत हस्ताक्षर','Authorised Signature')}</div>
+    </div>
+    <p style="margin-top:22px;font-size:12px;color:#666">${L('नोट: स्टांप ड्यूटी व रजिस्ट्रेशन फ़ीस सरकार को देय शासकीय शुल्क है।','Note: Stamp duty & registration fee are government charges payable to the State.')}</p>
+  `);
+}
+
+/* ============================================================
+                     PENDING DUES
+   ============================================================ */
+function outstandingCustomers(){ return DB.customers.map(c=>({c,bal:customerBalance(c.id)})).filter(x=>x.bal>0).sort((a,b)=>b.bal-a.bal); }
+function renderPending(el){
+  const custs=outstandingCustomers();
+  const regs=pendingRegistriesUnlinked().sort((a,b)=>registryDue(b)-registryDue(a));
+  const ledTot=custs.reduce((s,x)=>s+x.bal,0), regTot=regs.reduce((s,r)=>s+registryDue(r),0);
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('बकाया वसूली','Pending Dues')}</h2><div class="sub">${L('जिनसे पैसे लेने बाकी हैं — एक ही जगह','Everyone who owes you — in one place')}</div></div><div class="spacer"></div>
+      <button class="btn ghost sm" onclick="window.print()">🖨️ ${L('प्रिंट','Print')}</button></div>
+    <div class="cards">
+      <div class="card stat warn"><span class="lbl">📒 ${L('उधार खाता बकाया','Udhaar Outstanding')}</span><span class="val">${money(ledTot)}</span></div>
+      <div class="card stat warn"><span class="lbl">📑 ${L('रजिस्ट्री सेवा-शुल्क बकाया','Registry Fee Due')}</span><span class="val">${money(regTot)}</span></div>
+      <div class="card stat bad"><span class="lbl">Σ ${L('कुल वसूली बाकी','Total to Collect')}</span><span class="val">${money(ledTot+regTot)}</span></div>
+    </div>
+    <h3 class="sectionttl">📒 ${L('उधार खाता — बकाया ग्राहक','Udhaar Ledger — customers who owe')}</h3>
+    ${custs.length? tableHTML([L('ग्राहक','Customer'),L('फ़ोन','Phone'),L('बकाया','Balance Due'),L('फॉलो-अप','Follow-up'),''],
+      custs.map(x=>[esc(x.c.name),esc(x.c.phone||'-'),{num:true,v:`<span style="color:var(--danger);font-weight:700">${money(x.bal)}</span>`},
+        x.c.followUpDate?`<span style="color:var(--warn);font-size:12px">📌 ${fmtDate(x.c.followUpDate)}</span>`:'-',
+        actBtns([['💰',`state.selectedCustomer='${x.c.id}';showView('ledger')`,L('खाता खोलें','Open ledger')],['📤',`shareStatementWhatsApp('${x.c.id}')`,L('WhatsApp','WhatsApp')]])]))
+      : emptyHTML(L('कोई उधार बकाया नहीं — बढ़िया!','No udhaar pending — great!'))}
+    <h3 class="sectionttl">📑 ${L('रजिस्ट्री — सेवा-शुल्क बकाया','Registry — service fee due')}</h3>
+    <div class="hint">${L('जिन रजिस्ट्रियों को "उधार खाते" से जोड़ा गया है, उनका बकाया ऊपर "उधार खाता" में दिखता है — यहाँ दोहरा नहीं।','Registries linked to the Udhar ledger show their due above — not duplicated here.')}</div>
+    ${regs.length? tableHTML([L('नंबर','No.'),L('तारीख़','Date'),L('पक्षकार','Party'),L('फ़ोन','Phone'),L('बकाया','Due'),L('फॉलो-अप','Follow-up'),''],
+      regs.map(r=>[`<b>${esc(r.docNo||'-')}</b>`,fmtDate(r.date),esc(r.party1||r.party2||'-'),esc(r.applicantPhone||'-'),
+        {num:true,v:`<span style="color:var(--danger);font-weight:700">${money(registryDue(r))}</span>`},
+        r.followUpDate?`<span style="color:var(--warn);font-size:12px">📌 ${fmtDate(r.followUpDate)}</span>`:'-',
+        actBtns([['💰',`collectReg('${r.id}')`,L('पैसे लें','Collect')],['🧾',`printReceipt('${r.id}')`,L('रसीद','Receipt')],['📤',`shareReceiptWhatsApp('${r.id}')`,L('WhatsApp','WhatsApp')]])]))
+      : emptyHTML(L('कोई रजिस्ट्री शुल्क बकाया नहीं।','No registry fee pending.'))}
+  `;
+}
+
+/* ============================================================
+                  LEDGER (उधार खाता)
+   ============================================================ */
+function customerBalance(cid){
+  const ck='c'+cid; if(_balCache[ck]!=null) return _balCache[ck];
+  const v=DB.ledgerEntries.filter(e=>e.customerId===cid).reduce((s,e)=>s+(e.type==='charge'?Number(e.amount||0):-Number(e.amount||0)),0);
+  return _balCache[ck]=v;
+}
+function findCustomer(id){ const c=byId(DB.customers,id); return c?{...c}:{}; }
+function renderLedger(el){
+  const q=(state.custQ||'').toLowerCase();
+  let cust=[...DB.customers].sort((a,b)=>a.name.localeCompare(b.name));
+  if(q) cust=cust.filter(c=>((c.name||'')+' '+(c.phone||'')).toLowerCase().includes(q));
+  if(state.selectedCustomer && !byId(DB.customers,state.selectedCustomer)) state.selectedCustomer=null;
+  if(!state.selectedCustomer && cust.length) state.selectedCustomer=cust[0].id;
+  const sel=state.selectedCustomer?byId(DB.customers,state.selectedCustomer):null;
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('उधार खाता-बही','Udhaar Ledger')}</h2><div class="sub">${L('जो ग्राहक उधार लेते हैं उनका हिसाब','Track customers who take credit')}</div></div><div class="spacer"></div>
+      <button class="btn" onclick="addCustomer()">＋ ${L('ग्राहक','Customer')}</button>
+    </div>
+    <div class="hint">${L('<b>बकाया जोड़ें</b> = ग्राहक पर रकम चढ़ी (उसने उधार लिया)। <b>जमा</b> = ग्राहक ने पैसे चुकाए।','<b>Add charge</b> = amount owed by customer. <b>Receive</b> = customer paid you.')}</div>
+    ${DB.customers.length? `
+      <input id="srch_cust" class="search" style="margin-bottom:12px" placeholder="🔍 ${L('ग्राहक खोजें','Search customer')}" value="${esc(state.custQ||'')}" oninput="state.custQ=this.value;render()">
+      <div class="ledger-grid">
+      <div class="clist">${cust.length?cust.map(c=>`<div class="ci ${c.id===state.selectedCustomer?'active':''}" onclick="state.selectedCustomer='${c.id}';render()">
+        <span>${esc(c.name)}</span><span class="bal">${money(customerBalance(c.id))}</span></div>`).join(''):`<div class="empty">${L('कोई मेल नहीं','No match')}</div>`}</div>
+      <div>${sel?customerPanel(sel):''}</div>
+    </div>` : emptyHTML(L('अभी कोई ग्राहक नहीं। ＋ ग्राहक से जोड़ें।','No customers yet. Add with ＋ Customer.'))}
+  `;
+}
+function customerPanel(c){
+  const entries=DB.ledgerEntries.filter(e=>e.customerId===c.id).sort((a,b)=>a.date.localeCompare(b.date)||(a.createdAt||0)-(b.createdAt||0));
+  let run=0;
+  const rows=entries.map(e=>{ run+=e.type==='charge'?num(e.amount):-num(e.amount);
+    return [fmtDate(e.date),esc(e.note||(e.type==='charge'?L('बकाया','Charge'):L('जमा','Payment'))),
+      {num:true,v:e.type==='charge'?money(e.amount):''},{num:true,v:e.type==='payment'?money(e.amount):''},
+      {num:true,v:money(run)},actBtns([['🗑️',`delLedger('${e.id}')`,L('हटाएँ','Delete')]])];
+  });
+  const bal=customerBalance(c.id);
+  return `
+    <div class="card" style="margin-bottom:12px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div><div style="font-size:18px;font-weight:700">${esc(c.name)}</div>
+        <div style="color:var(--muted);font-size:13px">${esc(c.phone||'')} ${c.address?'• '+esc(c.address):''}</div></div>
+      <div class="spacer"></div>
+      <div class="stat ${bal>0?'bad':'good'}" style="text-align:right"><span class="lbl">${L('कुल बकाया','Balance Due')}</span><span class="val">${money(bal)}</span></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn red sm" onclick="addLedger('${c.id}','charge')">＋ ${L('बकाया जोड़ें','Add Charge')}</button>
+      <button class="btn green sm" onclick="addLedger('${c.id}','payment')">＋ ${L('जमा (पैसे मिले)','Receive Payment')}</button>
+      <button class="btn ghost sm" onclick="printCustomerStatement('${c.id}')">📄 ${L('विवरण पर्ची','Statement')}</button>
+      <button class="btn ghost sm" onclick="shareStatementWhatsApp('${c.id}')">📤 ${L('WhatsApp भेजें','Share on WhatsApp')}</button>
+      <button class="btn ghost sm" onclick="addCustomer(findCustomer('${c.id}'))">✏️ ${L('एडिट','Edit')}</button>
+      <button class="btn ghost sm" onclick="delCustomer('${c.id}')">🗑️ ${L('हटाएँ','Delete')}</button>
+    </div>
+    ${rows.length? tableHTML([L('तारीख़','Date'),L('विवरण','Detail'),L('बकाया','Charge'),L('जमा','Paid'),L('शेष','Balance'),''],rows)
+      : emptyHTML(L('कोई एंट्री नहीं।','No entries.'))}
+  `;
+}
+function addCustomer(vals){
+  const isEdit=vals&&vals.id;
+  formModal(vals&&vals.id?L('ग्राहक एडिट','Edit Customer'):L('नया ग्राहक','New Customer'),[
+    {key:'name',label:L('नाम','Name'),type:'text',required:true},
+    {key:'phone',label:L('फ़ोन','Phone'),type:'tel',help:L('10 अंकों का भारतीय नंबर','10-digit Indian number')},
+    {key:'address',label:L('पता','Address'),type:'textarea'},
+    {key:'followUpDate',label:L('अगला फॉलो-अप','Next Follow-up'),type:'date',half:true,help:L('बकाया वसूली के लिए','For due collection')},
+  ],vals||{},async o=>{
+    if(!validatePhone(o.phone) && o.phone.trim()){ setErr('phone',L('10 अंकों का सही मोबाइल नंबर डालें (जैसे 9876543210)','Enter a valid 10-digit mobile number')); return; }
+    if(vals&&vals.id){ withUndo(L('ग्राहक बदला','Customer updated'),()=>Object.assign(byId(DB.customers,vals.id),{name:o.name,phone:o.phone,address:o.address,followUpDate:o.followUpDate||''})); }
+    else {
+      const dup=DB.customers.find(c=>c.phone && c.phone.trim()===o.phone.trim());
+      if(dup && o.phone.trim()){
+        const ok=await confirmDialog(L('"'+esc(o.phone)+'" पहले से '+esc(dup.name)+' के नाम है। मिला दें?','"'+esc(o.phone)+'" already belongs to '+esc(dup.name)+'. Merge?'),{ok:L('मिलाएँ','Merge'),cancel:L('अलग रखें','Keep separate')});
+        if(ok){ state.selectedCustomer=dup.id; render(); closeModal(); return; }
+      }
+      const id=uid(); DB.customers.push({id,name:o.name,phone:o.phone,address:o.address}); state.selectedCustomer=id; audit(L('ग्राहक जोड़ा ','Added customer ')+(o.name||'')); save(); render(); toast(L('ग्राहक जुड़ा','Customer added'),{type:'good'});
+    }
+    closeModal();
+  });
+}
+function delCustomer(id){ const c=byId(DB.customers,id);
+  withUndo(L('ग्राहक हटाया','Customer deleted')+' ('+esc(c.name)+')',()=>{ DB.customers=DB.customers.filter(x=>x.id!==id); DB.ledgerEntries=DB.ledgerEntries.filter(e=>e.customerId!==id); DB.registryDocs.forEach(r=>{ if(r.customerId===id){ r.customerId=''; r.linkToLedger=false; } }); state.selectedCustomer=null; }); }
+function addLedger(cid,type){
+  formModal(type==='charge'?L('बकाया जोड़ें','Add Charge'):L('जमा (पैसे मिले)','Receive Payment'),[
+    {key:'date',label:L('तारीख़','Date'),type:'date',value:today(),required:true,half:true},
+    {key:'amount',label:L('रकम','Amount'),type:'number',required:true,half:true},
+    {key:'note',label:L('विवरण','Detail'),type:'text',placeholder:type==='charge'?L('किस काम का','For what'):L('जैसे नकद','e.g. cash')},
+  ],{},o=>{
+    DB.ledgerEntries.push({id:uid(),customerId:cid,type,date:o.date||today(),amount:num(o.amount),note:o.note,createdAt:Date.now()});
+    save(); render(); closeModal(); toast(type==='charge'?L('बकाया जुड़ा','Charge added'):L('जमा दर्ज','Payment recorded'),{type:'good'});
+  });
+}
+function delLedger(id){ withUndo(L('एंट्री हटाई','Entry deleted'),()=>{ DB.ledgerEntries=DB.ledgerEntries.filter(e=>e.id!==id); }); }
+function printStatement(cid){
+  const c=byId(DB.customers,cid); if(!c)return;
+  const entries=DB.ledgerEntries.filter(e=>e.customerId===cid).sort((a,b)=>a.date.localeCompare(b.date));
+  let run=0; const rows=entries.map(e=>{ run+=e.type==='charge'?num(e.amount):-num(e.amount);
+    return `<tr><td>${fmtDate(e.date)}</td><td>${esc(e.note||'')}</td>
+      <td style="text-align:right">${e.type==='charge'?money(e.amount):''}</td>
+      <td style="text-align:right">${e.type==='payment'?money(e.amount):''}</td>
+      <td style="text-align:right">${money(run)}</td></tr>`; }).join('');
+  printDoc(L('हिसाब','Statement')+' - '+(c.name||''),`
+    ${shopHeaderHTML()}
+    <h3 style="margin:14px 0 4px">${L('उधार खाता विवरण','Udhaar Statement')}</h3>
+    <div>${L('ग्राहक','Customer')}: <b>${esc(c.name)}</b> ${c.phone?(' • '+esc(c.phone)):''}</div>
+    <div>${L('तारीख़','Date')}: ${fmtDate(today())}</div>
+    <table style="margin-top:12px"><thead><tr><th>${L('तारीख़','Date')}</th><th>${L('विवरण','Detail')}</th><th style="text-align:right">${L('बकाया','Charge')}</th><th style="text-align:right">${L('जमा','Paid')}</th><th style="text-align:right">${L('शेष','Balance')}</th></tr></thead>
+    <tbody>${rows||`<tr><td colspan="5" style="text-align:center">${L('कोई एंट्री नहीं','No entries')}</td></tr>`}</tbody></table>
+    <div class="tot">${L('कुल बकाया','Total Due')}: ${money(customerBalance(cid))}</div>
+  `);
+}
+
+/* ============================================================
+                          SALARY
+   ============================================================ */
+function findWorker(id){ const w=byId(DB.workers,id); return w?{...w}:{}; }
+function renderSalary(el){
+  const workers=DB.workers;
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('कर्मचारी सैलरी','Worker Salary')}</h2><div class="sub">${L('कर्मचारी और उनकी सैलरी का रिकॉर्ड','Workers and salary records')}</div></div><div class="spacer"></div>
+      <button class="btn" onclick="addWorker()">＋ ${L('कर्मचारी','Worker')}</button>
+      <button class="btn green" onclick="paySalary()">💸 ${L('सैलरी भुगतान','Pay Salary')}</button>
+    </div>
+    <h3 class="sectionttl">${L('कर्मचारी','Workers')}</h3>
+    ${workers.length? tableHTML(
+      [L('नाम','Name'),L('काम','Role'),L('फ़ोन','Phone'),L('मासिक सैलरी','Monthly Salary'),L('इस माह दिया','Paid this month'),''],
+      workers.map(w=>{ const paid=DB.salaryPayments.filter(p=>p.workerId===w.id&&p.month===curMonth()).reduce((s,p)=>s+num(p.amount),0);
+        return [esc(w.name),esc(w.role||'-'),esc(w.phone||'-'),{num:true,v:money(w.monthlySalary)},{num:true,v:money(paid)},
+          actBtns([['💸',`paySalary('${w.id}')`,L('भुगतान','Pay')],['✏️',`addWorker(findWorker('${w.id}'))`,L('एडिट','Edit')],['🗑️',`delWorker('${w.id}')`,L('हटाएँ','Delete')]])]; })
+    ) : emptyHTML(L('अभी कोई कर्मचारी नहीं।','No workers yet.'))}
+    <h3 class="sectionttl">${L('सैलरी भुगतान का रिकॉर्ड','Salary Payment History')}</h3>
+    ${DB.salaryPayments.length? tableHTML(
+      [L('तारीख़','Date'),L('कर्मचारी','Worker'),L('महीना','Month'),L('तरीका','Mode'),L('नोट','Note'),L('रकम','Amount'),''],
+      [...DB.salaryPayments].sort((a,b)=>b.date.localeCompare(a.date)).map(p=>{ const w=byId(DB.workers,p.workerId);
+        return [fmtDate(p.date),esc(w?w.name:'-'),esc(p.month),modeLabel(p.mode),esc(p.note||''),{num:true,v:money(p.amount)},
+          actBtns([['🗑️',`delSalary('${p.id}')`,L('हटाएँ','Delete')]])]; })
+    ) : emptyHTML(L('कोई भुगतान नहीं।','No payments.'))}
+  `;
+}
+function addWorker(vals){
+  formModal(vals&&vals.id?L('कर्मचारी एडिट','Edit Worker'):L('नया कर्मचारी','New Worker'),[
+    {key:'name',label:L('नाम','Name'),type:'text',required:true,half:true},
+    {key:'role',label:L('काम / पद','Role'),type:'text',half:true},
+    {key:'phone',label:L('फ़ोन','Phone'),type:'tel',half:true},
+    {key:'monthlySalary',label:L('मासिक सैलरी','Monthly Salary'),type:'number',half:true},
+  ],vals||{},o=>{
+    if(vals&&vals.id){ withUndo(L('कर्मचारी बदला','Worker updated'),()=>Object.assign(byId(DB.workers,vals.id),{name:o.name,role:o.role,phone:o.phone,monthlySalary:num(o.monthlySalary)})); }
+    else { DB.workers.push({id:uid(),name:o.name,role:o.role,phone:o.phone,monthlySalary:num(o.monthlySalary)}); save(); render(); toast(L('कर्मचारी जुड़ा','Worker added'),{type:'good'}); }
+    closeModal();
+  });
+}
+function delWorker(id){ const w=byId(DB.workers,id); withUndo(L('कर्मचारी हटाया','Worker deleted')+' ('+esc(w.name)+')',()=>{ DB.workers=DB.workers.filter(x=>x.id!==id); }); }
+function paySalary(workerId){
+  if(DB.workers.length===0){ toast(L('पहले कर्मचारी जोड़ें।','Add a worker first.'),{type:'warn'}); return; }
+  formModal(L('सैलरी भुगतान','Pay Salary'),[
+    {key:'workerId',label:L('कर्मचारी','Worker'),type:'select',options:DB.workers.map(w=>({v:w.id,t:w.name})),value:workerId||DB.workers[0].id},
+    {key:'month',label:L('महीना','Month'),type:'month',value:curMonth(),half:true},
+    {key:'date',label:L('तारीख़','Date'),type:'date',value:today(),half:true},
+    {key:'amount',label:L('रकम','Amount'),type:'number',required:true,half:true},
+    {key:'mode',label:L('तरीका','Mode'),type:'select',options:MODE_OPTS(),value:'cash',half:true},
+    {key:'note',label:L('नोट','Note'),type:'text'},
+    {key:'alsoExpense',label:L('इसे खर्च में भी जोड़ें?','Also add to expenses?'),type:'select',options:[{v:'yes',t:L('हाँ (सुझाव)','Yes (recommended)')},{v:'no',t:L('नहीं','No')}],value:'yes'},
+  ],{},o=>{
+    DB.salaryPayments.push({id:uid(),workerId:o.workerId,month:o.month,date:o.date||today(),amount:num(o.amount),mode:o.mode,note:o.note});
+    if(o.alsoExpense==='yes'){ const w=byId(DB.workers,o.workerId);
+      DB.transactions.push({id:uid(),type:'expense',date:o.date||today(),category:L('सैलरी','Salary')+' - '+(w?w.name:''),amount:num(o.amount),mode:o.mode,note:o.note,createdAt:Date.now()}); }
+    save(); render(); closeModal(); toast(L('सैलरी भुगतान दर्ज','Salary recorded'),{type:'good'});
+  });
+}
+function delSalary(id){ withUndo(L('भुगतान हटाया','Payment deleted'),()=>{ DB.salaryPayments=DB.salaryPayments.filter(p=>p.id!==id); }); }
+
+/* ============================================================
+                           BANK
+   ============================================================ */
+function accountBalance(aid){
+  const ck='a'+aid; if(_balCache[ck]!=null) return _balCache[ck];
+  const a=byId(DB.bankAccounts,aid)||{};
+  const v=Number(a.openingBalance||0)+DB.bankTransactions.filter(t=>t.accountId===aid).reduce((s,t)=>s+Number(t.credit||0)-Number(t.debit||0),0);
+  return _balCache[ck]=v;
+}
+function renderBank(el){
+  if(state.selectedAccount && !byId(DB.bankAccounts,state.selectedAccount)) state.selectedAccount=null;
+  if(!state.selectedAccount && DB.bankAccounts.length) state.selectedAccount=DB.bankAccounts[0].id;
+  const acc=state.selectedAccount?byId(DB.bankAccounts,state.selectedAccount):null;
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('बैंक','Bank')}</h2><div class="sub">${L('बैंक खाते का लेन-देन व बैलेंस','Bank account transactions and balance')}</div></div><div class="spacer"></div>
+      <button class="btn" onclick="addAccount()">＋ ${L('अकाउंट','Account')}</button>
+    </div>
+    <div class="hint">${L('बैंक से सीधा लाइव लिंक संभव नहीं। नेट-बैंकिंग/YONO से स्टेटमेंट (CSV/Excel) डाउनलोड करके यहाँ इम्पोर्ट करें, या लेन-देन खुद जोड़ें।<br><b>ध्यान दें:</b> आय-खर्च में "बैंक/UPI" तरीका चुनने से यह बैंक बैलेंस अपने-आप नहीं बदलता — दोनों अलग हिसाब हैं। बैंक बैलेंस सिर्फ़ यहाँ जोड़े/इम्पोर्ट किए लेन-देन से बनता है।','Live bank link is not possible. Download a statement (CSV/Excel) and import here, or add transactions manually.<br><b>Note:</b> Choosing "Bank/UPI" mode in Income/Expense does NOT change this bank balance — they are separate ledgers. The bank balance reflects only transactions added/imported here.')}</div>
+    ${DB.bankAccounts.length? `
+      <div class="toolbar">
+        <select style="width:auto" onchange="state.selectedAccount=this.value;render()">
+          ${DB.bankAccounts.map(a=>`<option value="${a.id}" ${a.id===state.selectedAccount?'selected':''}>${esc(a.name)} ${a.accountNo?('('+esc(a.accountNo)+')'):''}</option>`).join('')}
+        </select>
+        <button class="btn sm" onclick="addBankTx('${acc.id}')">＋ ${L('लेन-देन','Transaction')}</button>
+        <button class="btn sec sm" onclick="importBankFile('${acc.id}')">📥 ${L('CSV/Excel इम्पोर्ट','Import CSV/Excel')}</button>
+        <div class="spacer"></div>
+        <div class="stat" style="text-align:right"><span class="lbl">${L('बैलेंस','Balance')}</span><span class="val">${money(accountBalance(acc.id))}</span></div>
+      </div>
+      ${(()=>{ const txs=DB.bankTransactions.filter(t=>t.accountId===acc.id).sort((a,b)=>b.date.localeCompare(a.date));
+        return txs.length? tableHTML([L('तारीख़','Date'),L('विवरण','Description'),L('नामे','Debit'),L('जमा','Credit'),''],
+          txs.map(t=>[fmtDate(t.date),esc(t.description||''),{num:true,v:t.debit?money(t.debit):''},{num:true,v:t.credit?money(t.credit):''},
+            actBtns([['🗑️',`delBankTx('${t.id}')`,L('हटाएँ','Delete')]])]))
+          : emptyHTML(L('इस अकाउंट में कोई लेन-देन नहीं।','No transactions in this account.')); })()}
+    ` : emptyHTML(L('पहले अकाउंट जोड़ें।','Add an account first.'))}
+  `;
+}
+function addAccount(){
+  formModal(L('बैंक अकाउंट','Bank Account'),[
+    {key:'name',label:L('नाम (जैसे SBI चालू खाता)','Name'),type:'text',value:'SBI',required:true,half:true},
+    {key:'accountNo',label:L('अकाउंट नंबर (आख़िरी 4 अंक)','Account No (last 4)'),type:'text',half:true},
+    {key:'openingBalance',label:L('शुरुआती बैलेंस','Opening Balance'),type:'number',allowNeg:true},
+  ],{},o=>{
+    const id=uid(); DB.bankAccounts.push({id,name:o.name,accountNo:o.accountNo,openingBalance:num(o.openingBalance)});
+    state.selectedAccount=id; save(); render(); closeModal(); toast(L('अकाउंट जुड़ा','Account added'),{type:'good'});
+  });
+}
+function addBankTx(aid){
+  formModal(L('बैंक लेन-देन','Bank Transaction'),[
+    {key:'date',label:L('तारीख़','Date'),type:'date',value:today(),required:true,half:true},
+    {key:'description',label:L('विवरण','Description'),type:'text',half:true},
+    {key:'debit',label:L('नामे / निकासी (Debit)','Debit / Withdrawal'),type:'number',half:true},
+    {key:'credit',label:L('जमा (Credit)','Credit / Deposit'),type:'number',half:true},
+  ],{},o=>{
+    DB.bankTransactions.push({id:uid(),accountId:aid,date:o.date||today(),description:o.description,debit:num(o.debit),credit:num(o.credit)});
+    save(); render(); closeModal(); toast(L('लेन-देन जुड़ा','Transaction added'),{type:'good'});
+  });
+}
+function delBankTx(id){ withUndo(L('बैंक लेन-देन हटाया','Bank transaction deleted'),()=>{ DB.bankTransactions=DB.bankTransactions.filter(t=>t.id!==id); }); }
+function importBankFile(aid){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+  inp.onchange=()=>{ const file=inp.files[0]; if(!file)return;
+    const ext=(file.name.split('.').pop()||'').toLowerCase();
+    if(ext==='xlsx'||ext==='xls'){
+      loadXLSX().then(()=>{
+        const r=new FileReader();
+        r.onload=(e)=>{
+          try{
+            const data=new Uint8Array(e.target.result);
+            const wb=XLSX.read(data,{type:'array'});
+            const ws=wb.Sheets[wb.SheetNames[0]];
+            const json=XLSX.utils.sheet_to_json(ws,{header:1,blankrows:false});
+            if(json.length<2){ toast(L('फ़ाइल में डेटा नहीं मिला।','No data found.'),{type:'bad'}); return; }
+            showCSVMapper(aid,json.map(r=>r.map(c=>c==null?'':String(c))));
+          }catch(err){ toast(L('Excel पढ़ने में गड़बड़ी। इंटरनेट चालू है?','Error reading Excel. Is internet on?'),{type:'bad'}); }
+        };
+        r.readAsArrayBuffer(file);
+      }).catch(()=>toast(L('Excel लाइब्रेरी लोड नहीं हुई। इंटरनेट चालू करें।','Could not load Excel library. Enable internet.'),{type:'bad'}));
+    } else {
+      const r=new FileReader();
+      r.onload=()=>{ const rows=parseCSV(r.result); if(rows.length<2){ toast(L('फ़ाइल में डेटा नहीं मिला।','No data found.'),{type:'bad'}); return; } showCSVMapper(aid,rows); };
+      r.readAsText(file);
+    }
+  };
+  inp.click();
+}
+function showCSVMapper(aid,rows){
+  const headers=rows[0];
+  const guess=names=>{ const i=headers.findIndex(h=>names.some(n=>String(h).toLowerCase().includes(n))); return i<0?'':String(i); };
+  const sel=(id,g)=>`<select id="map_${id}"><option value="">${L('— कोई नहीं —','— none —')}</option>${headers.map((h,i)=>`<option value="${i}" ${String(i)===g?'selected':''}>${esc(h||('col'+(i+1)))}</option>`).join('')}</select>`;
+  openModal(`<h3>${L('CSV/Excel कॉलम मिलाएँ','Map CSV/Excel Columns')}</h3>
+    <div class="body">
+      <p style="color:var(--muted);margin-top:0;font-size:13px">${L('बताइए किस कॉलम में क्या है (स्टेटमेंट के हिसाब से अपने-आप चुना गया है):','Tell us which column is which (auto-guessed):')}</p>
+      <label class="fld"><span class="lt">${L('तारीख़','Date')}</span>${sel('date',guess(['date','txn','tran','value date']))}</label>
+      <label class="fld"><span class="lt">${L('विवरण','Description')}</span>${sel('desc',guess(['desc','narration','particular','remark','detail','transaction remarks']))}</label>
+      <label class="fld"><span class="lt">${L('नामे (Debit/Withdrawal)','Debit / Withdrawal')}</span>${sel('debit',guess(['debit','withdraw','dr','debit amount']))}</label>
+      <label class="fld"><span class="lt">${L('जमा (Credit/Deposit)','Credit / Deposit')}</span>${sel('credit',guess(['credit','deposit','cr','credit amount']))}</label>
+      <div class="hint">${L('पहली पंक्ति को हेडर माना गया है।','First row treated as header.')}</div>
+    </div>
+    <div class="foot">
+      <button class="btn ghost" onclick="closeModal()">${L('रद्द','Cancel')}</button>
+      <button class="btn" onclick="doCSVImport('${aid}')">${L('इम्पोर्ट करें','Import')}</button>
+    </div>`);
+  showCSVMapper._rows=rows;
+}
+function doCSVImport(aid){
+  const rows=showCSVMapper._rows; const g=id=>document.getElementById('map_'+id).value;
+  const ci={date:g('date'),desc:g('desc'),debit:g('debit'),credit:g('credit')};
+  if(ci.date===''){ toast(L('तारीख़ का कॉलम चुनें।','Select the Date column.'),{type:'warn'}); return; }
+  /* signature of existing rows so re-importing the same statement doesn't double-count */
+  const seen=new Set(DB.bankTransactions.filter(t=>t.accountId===aid).map(t=>[t.date,num(t.debit),num(t.credit),(t.description||'').trim()].join('|')));
+  let n=0,dup=0,bad=0;
+  for(let i=1;i<rows.length;i++){ const row=rows[i]; if(!row||row.every(c=>!c))continue;
+    const dt=parseAnyDate(row[ci.date]); if(!dt){ bad++; continue; }
+    const debit=ci.debit!==''?num(row[ci.debit]):0,credit=ci.credit!==''?num(row[ci.credit]):0;
+    if(!debit&&!credit)continue;
+    const desc=ci.desc!==''?row[ci.desc]:'';
+    const sig=[dt,debit,credit,(desc||'').trim()].join('|');
+    if(seen.has(sig)){ dup++; continue; }
+    seen.add(sig);
+    DB.bankTransactions.push({id:uid(),accountId:aid,date:dt,description:desc,debit,credit}); n++;
+  }
+  save(); closeModal(); render();
+  let msg=L(n+' लेन-देन इम्पोर्ट हुए।',n+' transactions imported.');
+  if(dup) msg+=L(' '+dup+' डुप्लिकेट छोड़े।',' '+dup+' duplicates skipped.');
+  if(bad) msg+=L(' '+bad+' पंक्ति की तारीख़ ग़लत थी।',' '+bad+' rows had bad dates.');
+  toast(msg,{type:n?'good':'warn',duration:5500});
+}
+function parseCSV(text){
+  const rows=[]; let i=0,field='',row=[],inQ=false;
+  while(i<text.length){ const c=text[i];
+    if(inQ){ if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else inQ=false; } else field+=c; }
+    else { if(c==='"')inQ=true; else if(c===','){row.push(field);field='';} else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';} else if(c==='\r'){} else field+=c; }
+    i++; }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows.map(r=>r.map(c=>c.trim())).filter(r=>r.some(x=>x!==''));
+}
+const MONTHS={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+function validDate(y,mo,d){ y=+y;mo=+mo;d=+d; return mo>=1&&mo<=12&&d>=1&&d<=31&&y>=1900&&y<=2200; }
+function parseAnyDate(s){ if(!s)return''; s=String(s).trim();
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m){ return validDate(m[1],m[2],m[3])?`${m[1]}-${m[2]}-${m[3]}`:''; }
+  m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if(m){ let y=m[3]; if(y.length===2)y='20'+y; const mo=m[2].padStart(2,'0'),d=m[1].padStart(2,'0'); return validDate(y,mo,d)?`${y}-${mo}-${d}`:''; }
+  m=s.match(/^(\d{1,2})[\s\-]([A-Za-z]{3})[A-Za-z]*[\s\-](\d{2,4})/);
+  if(m){ const mo=MONTHS[m[2].toLowerCase()]; if(mo){ let y=m[3]; if(y.length===2)y='20'+y; const d=m[1].padStart(2,'0'); return validDate(y,mo,d)?`${y}-${mo}-${d}`:''; } }
+  return '';
+}
+
+/* ============================================================
+                          REPORTS
+   ============================================================ */
+function renderReports(el){
+  const r=state.repRange||{from:curMonth()+'-01',to:today()};
+  const inRange=x=>x.date>=r.from&&x.date<=r.to;
+  const tx=DB.transactions.filter(inRange);
+  const income=sum(tx.filter(x=>x.type==='income')),expense=sum(tx.filter(x=>x.type==='expense'));
+  const salary=DB.salaryPayments.filter(inRange).reduce((s,x)=>s+num(x.amount),0);
+  const outstanding=DB.customers.reduce((s,c)=>s+Math.max(0,customerBalance(c.id)),0)+pendingRegistriesUnlinked().reduce((s,d)=>s+registryDue(d),0);
+  const regDocs=DB.registryDocs.filter(inRange);
+  const regFee=regDocs.reduce((s,d)=>s+num(d.serviceCharge),0);
+  const modes=['cash','upi','bank']; const modeIn={},modeOut={};
+  modes.forEach(md=>{ modeIn[md]=sum(tx.filter(x=>x.type==='income'&&(x.mode||'cash')===md)); modeOut[md]=sum(tx.filter(x=>x.type==='expense'&&(x.mode||'cash')===md)); });
+  const catMap={}; tx.forEach(x=>{ const k=(x.type==='income'?'+ ':'- ')+(x.category||L('अन्य','Other')); catMap[k]=(catMap[k]||0)+(x.type==='income'?num(x.amount):-num(x.amount)); });
+  const cats=Object.entries(catMap).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]));
+  el.innerHTML=`
+    <div class="pagehead"><div><h2>${L('रिपोर्ट','Reports')}</h2><div class="sub">${fmtDate(r.from)} — ${fmtDate(r.to)}</div></div><div class="spacer"></div>
+      <button class="btn ghost" onclick="window.print()">🖨️ ${L('प्रिंट / PDF','Print / PDF')}</button>
+      <button class="btn sec" onclick="exportReportCSV()">📤 CSV</button>
+      <button class="btn green" onclick="exportExcel()">📗 Excel</button>
+    </div>
+    <div class="toolbar no-print">
+      <div class="grp"><span>${L('से','From')}</span><input type="date" style="width:auto;border:0;padding:4px" value="${r.from}" onchange="setRep('from',this.value)">
+      <span>${L('तक','To')}</span><input type="date" style="width:auto;border:0;padding:4px" value="${r.to}" onchange="setRep('to',this.value)"></div>
+      <button class="btn ghost sm" onclick="quickRange('today')">${L('आज','Today')}</button>
+      <button class="btn ghost sm" onclick="quickRange('month')">${L('इस महीने','This Month')}</button>
+      <button class="btn ghost sm" onclick="quickRange('year')">${L('इस साल','This Year')}</button>
+    </div>
+    <div class="cards">
+      <div class="card stat good"><span class="lbl">${L('कुल आय','Total Income')}</span><span class="val">${money(income)}</span></div>
+      <div class="card stat bad"><span class="lbl">${L('कुल खर्च','Total Expense')}</span><span class="val">${money(expense)}</span></div>
+      <div class="card stat ${income-expense>=0?'good':'bad'}"><span class="lbl">${L('मुनाफ़ा/घाटा','Profit/Loss')}</span><span class="val">${money(income-expense)}</span></div>
+      <div class="card stat"><span class="lbl">${L('सैलरी भुगतान','Salary Paid')}</span><span class="val">${money(salary)}</span></div>
+      <div class="card stat brand"><span class="lbl">${L('रजिस्ट्री सेवा-शुल्क (बिल किया)','Registry Service Fee (billed)')}</span><span class="val">${money(regFee)}</span></div>
+      <div class="card stat warn"><span class="lbl">${L('कुल बकाया वसूली','Outstanding')}</span><span class="val">${money(outstanding)}</span></div>
+    </div>
+    <h3 class="sectionttl">${L('भुगतान तरीका अनुसार','By Payment Mode')}</h3>
+    ${tableHTML([L('तरीका','Mode'),L('आय','Income'),L('खर्च','Expense'),L('शुद्ध','Net')],
+      modes.map(md=>[modeLabel(md),{num:true,v:money(modeIn[md])},{num:true,v:money(modeOut[md])},{num:true,v:money(modeIn[md]-modeOut[md])}]))}
+    <h3 class="sectionttl">${L('श्रेणी अनुसार','By Category')}</h3>
+    ${cats.length? tableHTML([L('श्रेणी','Category'),L('रकम','Amount')],cats.map(([k,v])=>[esc(k),{num:true,v:money(v)}]))
+      : emptyHTML(L('इस अवधि में कोई लेन-देन नहीं।','No transactions in this range.'))}
+  `;
+}
+function setRep(k,v){ state.repRange=state.repRange||{from:curMonth()+'-01',to:today()}; state.repRange[k]=v; render(); }
+function quickRange(p){ const y=today().slice(0,4);
+  if(p==='today') state.repRange={from:today(),to:today()};
+  else if(p==='month') state.repRange={from:curMonth()+'-01',to:today()};
+  else state.repRange={from:y+'-01-01',to:today()};
+  render(); }
+function exportReportCSV(){
+  const r=state.repRange||{from:curMonth()+'-01',to:today()};
+  const tx=DB.transactions.filter(x=>x.date>=r.from&&x.date<=r.to).sort((a,b)=>a.date.localeCompare(b.date));
+  let csv='Date,Type,Category,Mode,Note,Amount\n';
+  tx.forEach(x=>{ csv+=[x.date,x.type,csvCell(x.category),x.mode,csvCell(x.note),x.amount].join(',')+'\n'; });
+  downloadFile(`report_${r.from}_${r.to}.csv`,csv,'text/csv'); toast(L('CSV डाउनलोड हुई','CSV downloaded'),{type:'good'});
+}
+function csvCell(s){ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+/* Excel (.xls) — Excel opens HTML tables cleanly; multiple sections with real numbers */
+function exportExcel(){
+  const r=state.repRange||{from:curMonth()+'-01',to:today()};
+  const inR=x=>x.date>=r.from&&x.date<=r.to;
+  const tbl=(title,head,rows)=>`<h3>${esc(title)}</h3><table border="1"><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr>${rows.map(rw=>`<tr>${rw.map(c=>`<td>${typeof c==='number'?c:esc(c)}</td>`).join('')}</tr>`).join('')}</table><br>`;
+  const tx=DB.transactions.filter(inR).sort((a,b)=>a.date.localeCompare(b.date));
+  let html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body>`;
+  html+=`<h2>${esc(DB.settings.shopName||'Registry Shop')}</h2><div>${L('अवधि','Period')}: ${fmtDate(r.from)} — ${fmtDate(r.to)}</div><br>`;
+  html+=tbl(L('आय-खर्च','Income / Expense'),['Date','Type','Category','Mode','Note','Amount'],
+    tx.map(x=>[x.date,x.type,x.category||'',x.mode||'',x.note||'',Number(x.amount)]));
+  html+=tbl(L('रजिस्ट्री','Registry'),['DocNo','Date','Deed','Party1','Party2','Property','Stamp','RegFee','ServiceFee','Received','Due','Status'],
+    DB.registryDocs.filter(inR).map(d=>[d.docNo||'',d.date,d.deedType||'',d.party1||'',d.party2||'',d.property||'',Number(d.stampDuty),Number(d.regFee),Number(d.serviceCharge),Number(d.received),registryDue(d),d.status||'']));
+  html+=tbl(L('उधार बकाया','Udhaar Outstanding'),['Customer','Phone','Balance'],
+    outstandingCustomers().map(x=>[x.c.name,x.c.phone||'',x.bal]));
+  html+=`</body></html>`;
+  downloadFile(`registry-export_${r.from}_${r.to}.xls`,html,'application/vnd.ms-excel');
+  toast(L('Excel फ़ाइल डाउनलोड हुई','Excel file downloaded'),{type:'good'});
+}
+/* printable day summary (day-close sheet) */
+function printDaySummary(date){
+  const d=date||today(); const tx=DB.transactions.filter(x=>x.date===d);
+  const ins=tx.filter(x=>x.type==='income'),outs=tx.filter(x=>x.type==='expense');
+  const tin=sum(ins),tout=sum(outs);
+  const byMode=md=>({in:sum(ins.filter(x=>(x.mode||'cash')===md)),out:sum(outs.filter(x=>(x.mode||'cash')===md))});
+  const cash=byMode('cash'),upi=byMode('upi'),bank=byMode('bank');
+  const catRows=arr=>{ const m={}; arr.forEach(x=>{ const k=x.category||L('अन्य','Other'); m[k]=(m[k]||0)+num(x.amount); }); return Object.entries(m).map(([k,v])=>`<tr><td>${esc(k)}</td><td style="text-align:right">${money(v)}</td></tr>`).join('')||`<tr><td colspan=2 style="text-align:center">—</td></tr>`; };
+  const totalDue=DB.customers.reduce((s,c)=>s+Math.max(0,customerBalance(c.id)),0)+pendingRegistriesUnlinked().reduce((s,r)=>s+registryDue(r),0);
+  printDoc(L('दिन का सारांश','Day Summary')+' '+fmtDate(d),`
+    ${shopHeaderHTML()}
+    <h3 style="margin:14px 0 4px">${L('दैनिक सारांश','Daily Summary')} — ${fmtDate(d)}</h3>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin:10px 0">
+      <div><b>${L('कुल आय','Total Income')}:</b> ${money(tin)}</div>
+      <div><b>${L('कुल खर्च','Total Expense')}:</b> ${money(tout)}</div>
+      <div><b>${L('शुद्ध','Net')}:</b> ${money(tin-tout)}</div>
+      <div><b>${L('नकद हाथ में','Cash in Hand')}:</b> ${money(cash.in-cash.out)}</div>
+    </div>
+    <table><thead><tr><th>${L('तरीका','Mode')}</th><th style="text-align:right">${L('आय','Income')}</th><th style="text-align:right">${L('खर्च','Expense')}</th></tr></thead>
+    <tbody>
+      <tr><td>${L('नकद','Cash')}</td><td style="text-align:right">${money(cash.in)}</td><td style="text-align:right">${money(cash.out)}</td></tr>
+      <tr><td>UPI</td><td style="text-align:right">${money(upi.in)}</td><td style="text-align:right">${money(upi.out)}</td></tr>
+      <tr><td>${L('बैंक','Bank')}</td><td style="text-align:right">${money(bank.in)}</td><td style="text-align:right">${money(bank.out)}</td></tr>
+    </tbody></table>
+    <div style="display:flex;gap:24px;margin-top:16px">
+      <div style="flex:1"><h4>${L('आय (श्रेणी अनुसार)','Income by category')}</h4><table><tbody>${catRows(ins)}</tbody></table></div>
+      <div style="flex:1"><h4>${L('खर्च (श्रेणी अनुसार)','Expense by category')}</h4><table><tbody>${catRows(outs)}</tbody></table></div>
+    </div>
+    <p style="margin-top:18px">${L('लंबित रजिस्ट्री','Pending registries')}: <b>${pendingRegistriesUnlinked().length}</b> · ${L('कुल बकाया वसूली','Total dues')}: <b>${money(totalDue)}</b></p>
+  `);
+}
+
+/* ============================================================
+                    BACKUP / SETTINGS
+   ============================================================ */
+function backupOverdueDays(){
+  const lb=DB.settings.lastBackup;
+  const hasData=DB.transactions.length||DB.registryDocs.length||DB.customers.length;
+  if(!hasData) return null;
+  if(!lb) return 0;
+  const dd=daysBetween(lb.slice(0,10),today());
+  return dd>=7?dd:null;
+}
+function renderBackup(el){
+  const counts=`${DB.transactions.length} ${L('लेन-देन','tx')}, ${DB.registryDocs.length} ${L('रजिस्ट्री','docs')}, ${DB.customers.length} ${L('ग्राहक','cust')}, ${DB.workers.length} ${L('कर्मचारी','workers')}`;
+  const snaps=getAutoSnapshots();
+  el.innerHTML=`
+    <div class="pagehead"><h2>${L('बैकअप व सेटिंग','Backup & Settings')}</h2></div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">${L('दुकान की जानकारी','Shop Details')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('यह रसीद और पर्ची के ऊपर छपती है।','This appears on receipts and statements.')}</p>
+      <label class="fld"><span class="lt">${L('दुकान का नाम','Shop Name')}</span><input id="setShop" value="${esc(DB.settings.shopName)}" placeholder="${L('जैसे: शर्मा रजिस्ट्री सेवा','e.g. Sharma Registry Service')}"></label>
+      <div class="row2">
+        <label class="fld"><span class="lt">${L('पता','Address')}</span><input id="setAddr" value="${esc(DB.settings.shopAddress||'')}"></label>
+        <label class="fld"><span class="lt">${L('फ़ोन','Phone')}</span><input id="setPhone" value="${esc(DB.settings.shopPhone||'')}"></label>
+      </div>
+      <div class="row2">
+        <label class="fld"><span class="lt">${L('भाषा','Language')}</span>
+          <select id="setLangSel"><option value="hi" ${state.lang==='hi'?'selected':''}>हिंदी</option><option value="en" ${state.lang==='en'?'selected':''}>English</option></select></label>
+        <label class="fld"><span class="lt">${L('मुद्रा चिह्न','Currency Symbol')}</span><input id="setCur" value="${esc(DB.settings.currency)}"></label>
+      </div>
+      <button class="btn" onclick="saveSettings()">💾 ${L('सेव करें','Save')}</button>
+    </div>
+    <div class="card" style="margin-bottom:16px;border:2px solid #f3d79a">
+      <h3 style="margin-top:0">⬇️ ${L('बैकअप (बहुत ज़रूरी!)','Backup (Very Important!)')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('आपका डेटा सिर्फ़ इसी कंप्यूटर के ब्राउज़र में है। हफ़्ते में एक बार बैकअप फ़ाइल डाउनलोड करके पेन-ड्राइव/Google Drive पर रखें।','Your data lives only in this browser. Once a week, download a backup and keep it on a pen-drive/Google Drive.')}</p>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:6px">${L('मौजूदा डेटा','Current data')}: ${counts}</div>
+      <div style="font-size:13px;color:${backupOverdueDays()!=null?'var(--danger)':'var(--muted)'};margin-bottom:12px">${L('आख़िरी बैकअप','Last backup')}: ${DB.settings.lastBackup?esc(DB.settings.lastBackup):L('कभी नहीं','never')}</div>
+      <button class="btn green big" onclick="exportBackup()">⬇️ ${L('बैकअप डाउनलोड (.json)','Download Backup')}</button>
+      <button class="btn sec" onclick="importBackup()">⬆️ ${L('बैकअप से वापस लाएँ','Restore from Backup')}</button>
+    </div>
+    <div class="card" style="margin-bottom:16px;border:2px solid #9ad0f3">
+      <h3 style="margin-top:0">📱 ${L('कई डिवाइस सिंक','Multi-device sync')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('कंप्यूटर और मोबाइल — दोनों पर एक ही "शॉप की" डालें। फिर एक डिवाइस की एंट्री कुछ ही सेकंड में दूसरी डिवाइस पर अपने-आप आ जाएगी। (इसके लिए इंटरनेट चाहिए; इंटरनेट न हो तो भी ऐप चलता रहेगा और बाद में सिंक हो जाएगा।)','Enter the same "Shop Key" on both your computer and phone. Entries from one device then appear on the other within seconds. (Needs internet; the app still works offline and syncs later.)')}</p>
+      <label class="fld" style="display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:auto" ${DB.settings.syncEnabled?'checked':''} onchange="toggleSync(this.checked)"> <span class="lt" style="margin:0">${L('सिंक चालू करें','Turn sync on')}</span></label>
+      <label class="fld" style="margin-top:8px"><span class="lt">${L('शॉप की (गुप्त — दोनों डिवाइस पर एक जैसी)','Shop Key (secret — same on both devices)')}</span>
+        <input id="setSyncKey" type="text" autocomplete="off" spellcheck="false" value="${esc(DB.settings.syncKey||'')}" placeholder="${L('जैसे: sharma-dukan-7788','e.g. sharma-dukan-7788')}"></label>
+      <div style="font-size:12.5px;color:var(--muted);margin:4px 0 10px">${L('कम-से-कम 4 अक्षर। इसे गुप्त रखें — जिसके पास यह की होगी वही आपका डेटा देख/बदल सकेगा। एक मज़बूत, अनोखी की चुनें।','At least 4 characters. Keep it secret — anyone with this key can read/change your data. Pick a strong, unique key.')}</div>
+      <button class="btn" onclick="saveSyncKey()">💾 ${L('की सेव करें','Save key')}</button>
+      ${DB.settings.syncEnabled?`<button class="btn sec" onclick="syncNow()">🔄 ${L('अभी सिंक करें','Sync now')}</button>`:''}
+      <div style="font-size:13px;color:var(--muted);margin-top:10px">${L('आख़िरी सिंक','Last sync')}: ${DB.settings.lastSyncAt?esc(DB.settings.lastSyncAt):L('अभी तक नहीं','not yet')}</div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🛟 ${L('ऑटो-सेव (सुरक्षा जाल)','Auto-save (safety net)')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('ऐप अपने-आप पिछली 3 हालत सहेजता है। गलती हो जाए तो यहाँ से वापस लाएँ।','The app auto-keeps the last 3 states. If something goes wrong, restore here.')}</p>
+      ${snaps.length?snaps.map((s,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="flex:1;font-size:14px">🕒 ${esc(s.at)}</span><button class="btn ghost sm" onclick="restoreSnapshot(${i})">${L('इसे वापस लाएँ','Restore this')}</button></div>`).join(''):`<div style="color:var(--muted);font-size:13px">${L('अभी कोई ऑटो-सेव नहीं।','No auto-saves yet.')}</div>`}
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🤖 ${L('अपने-आप बैकअप','Automatic backup')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('एक बार फ़ोल्डर चुन लें — फिर रोज़ का बैकअप अपने-आप उसी फ़ोल्डर में सेव होगा (Chrome/Edge)। फ़ोल्डर न चुनें तो रोज़ Downloads में एक फ़ाइल आती है।','Pick a folder once — the daily backup then saves there automatically (Chrome/Edge). Without a folder, a file lands in Downloads each day.')}</p>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px">${L('मौजूदा फ़ोल्डर','Current folder')}: <b>${DB.settings.backupFolderName?esc(DB.settings.backupFolderName):L('चुना नहीं','none')}</b></div>
+      <button class="btn sec" onclick="pickBackupFolder()">📁 ${L('बैकअप फ़ोल्डर चुनें','Choose backup folder')}</button>
+      <label class="fld" style="margin:12px 0 0;display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:auto" ${DB.settings.autoBackupDaily?'checked':''} onchange="DB.settings.autoBackupDaily=this.checked;save();"> <span class="lt" style="margin:0">${L('रोज़ का अपने-आप बैकअप चालू रखें','Keep daily auto-backup on')}</span></label>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">📂 ${L('श्रेणी प्रबंधन','Category Management')}</h3>
+      <p style="color:var(--muted);font-size:13px;margin-top:0">${L('आय और खर्च की अपनी श्रेणियाँ बनाएँ। ये आय-खर्च फ़ॉर्म में दिखेंगी।','Create your own income and expense categories. These will appear in the income/expense form.')}</p>
+      <button class="btn sec" onclick="manageCategories()">${L('श्रेणियाँ बनाएँ/हटाएँ','Manage Categories')}</button>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🎨 ${L('दिखावट व सुरक्षा','Appearance & Security')}</h3>
+      <div class="row2">
+        <label class="fld"><span class="lt">${L('थीम','Theme')}</span>
+          <select onchange="setTheme(this.value)">
+            <option value="light" ${DB.settings.theme!=='dark'?'selected':''}>${L('उजली','Light')}</option>
+            <option value="dark" ${DB.settings.theme==='dark'?'selected':''}>${L('गहरी (Dark)','Dark')}</option>
+          </select></label>
+        <label class="fld"><span class="lt">${L('अक्षर का आकार','Text size')}: ${Math.round((DB.settings.fontScale||1)*100)}%</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn ghost" onclick="setFontScale((DB.settings.fontScale||1)-0.1);render()">A−</button>
+            <button class="btn ghost" onclick="setFontScale(1);render()">A</button>
+            <button class="btn ghost" onclick="setFontScale((DB.settings.fontScale||1)+0.1);render()" style="font-size:18px">A+</button>
+          </div></label>
+      </div>
+      <div style="margin-top:6px">
+        <span style="font-size:13.5px;font-weight:600">🔒 ${L('पासकोड लॉक','Passcode lock')}</span>
+        <p style="color:var(--muted);font-size:12.5px;margin:4px 0 8px">${L('ऐप खोलते ही पासकोड माँगा जाएगा। (हल्की निजता के लिए — पूरी एन्क्रिप्शन नहीं।)','Asks a passcode when the app opens. (Light privacy — not full encryption.)')}</p>
+        ${DB.settings.passcodeHash||DB.settings.passcode
+          ? `<button class="btn ghost sm" onclick="setPasscode()">${L('पासकोड बदलें','Change passcode')}</button> <button class="btn ghost sm" onclick="removePasscode()">${L('पासकोड हटाएँ','Remove passcode')}</button>`
+          : `<button class="btn sec sm" onclick="setPasscode()">${L('पासकोड सेट करें','Set a passcode')}</button>`}
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🧾 GST</h3>
+      <label class="fld" style="display:flex;align-items:center;gap:8px"><input type="checkbox" style="width:auto" ${DB.settings.gstEnabled?'checked':''} onchange="DB.settings.gstEnabled=this.checked;save();render();"> <span class="lt" style="margin:0">${L('रसीद पर GST दिखाएँ','Show GST on receipts')}</span></label>
+      ${DB.settings.gstEnabled?`<div class="row2" style="margin-top:6px">
+        <label class="fld"><span class="lt">${L('GST दर (%)','GST rate (%)')}</span><input id="setGstRate" type="number" value="${num(DB.settings.gstRate)}" onchange="DB.settings.gstRate=num(this.value);save()"></label>
+        <label class="fld"><span class="lt">GSTIN</span><input id="setGstin" value="${esc(DB.settings.gstin||'')}" onchange="DB.settings.gstin=this.value.trim();save()"></label>
+      </div>`:''}
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="margin-top:0">🕒 ${L('हाल की गतिविधि','Recent activity')}</h3>
+      ${DB.auditLog&&DB.auditLog.length?`<div style="max-height:180px;overflow:auto;font-size:13px">${DB.auditLog.slice(0,20).map(a=>`<div style="padding:5px 0;border-bottom:1px solid var(--line)"><span style="color:var(--muted)">${esc(a.at)}</span> — ${esc(a.action)}</div>`).join('')}</div>`:`<div style="color:var(--muted);font-size:13px">${L('अभी कोई गतिविधि नहीं।','No activity yet.')}</div>`}
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">${L('अन्य','Other')}</h3>
+      <button class="btn ghost" onclick="loadDemo()">🎁 ${L('डेमो डेटा भरें','Load Demo Data')}</button>
+      ${hasDemoData()?`<button class="btn warn" onclick="removeDemo()">🧹 ${L('सिर्फ़ डेमो डेटा हटाएँ','Remove sample data only')}</button>`:''}
+      <button class="btn red" onclick="wipeAll()">🗑️ ${L('सारा डेटा मिटाएँ','Erase All Data')}</button>
+    </div>
+  `;
+}
+function saveSettings(){
+  DB.settings.shopName=document.getElementById('setShop').value.trim();
+  DB.settings.shopAddress=document.getElementById('setAddr').value.trim();
+  DB.settings.shopPhone=document.getElementById('setPhone').value.trim();
+  DB.settings.currency=document.getElementById('setCur').value.trim()||'₹';
+  const l=document.getElementById('setLangSel').value; DB.settings.lang=l; state.lang=l;
+  save(); applyStaticI18n(); render(); toast(L('सेटिंग सेव हो गई','Settings saved'),{type:'good'});
+}
+/* ---- multi-device sync settings handlers ---- */
+function saveSyncKey(){
+  const el=document.getElementById('setSyncKey'); const key=el?el.value.trim():'';
+  if(key && key.length<SYNC_MIN_LEGACY_LENGTH){ toast(L('शॉप की कम-से-कम 4 अक्षर की हो।','Shop Key must be at least 4 characters.'),{type:'bad'}); return; }
+  if(key && key.length<SYNC_MIN_KEY_LENGTH){ toast(L('ध्यान दें: छोटी की सिर्फ़ पहले से बनी दुकान के लिए चलेगी। नई दुकान के लिए 16+ अक्षर की की रखें।','Note: a short key only works for an already-existing shop. Use a 16+ character key for a new shop.'),{type:'warn'}); }
+  const changed = key!==(DB.settings.syncKey||'');
+  DB.settings.syncKey=key;
+  if(changed){ saveSyncBase(null); DB.settings.syncRev=0; }   /* new shop → forget old base */
+  save();
+  if(syncOn()){ startSync(); toast(L('की सेव हुई — सिंक चालू।','Key saved — sync is on.'),{type:'good'}); }
+  else { stopSync(); render(); toast(L('की सेव हुई।','Key saved.'),{type:'good'}); }
+}
+function toggleSync(on){
+  DB.settings.syncEnabled=!!on;
+  /* persist the just-typed key too, so toggling on doesn't lose it */
+  const el=document.getElementById('setSyncKey'); if(el) DB.settings.syncKey=el.value.trim();
+  save();
+  if(syncOn()){ startSync(); toast(L('मल्टी-डिवाइस सिंक चालू।','Multi-device sync on.'),{type:'good'}); }
+  else if(on){ render(); toast(L('पहले एक शॉप की डालें (नई दुकान के लिए कम-से-कम 16 अक्षर)।','Enter a Shop Key first (at least 16 characters for a new shop).'),{type:'warn'}); }
+  else { stopSync(); render(); toast(L('सिंक बंद।','Sync off.'),{type:'good'}); }
+}
+function exportBackup(){
+  DB.settings.lastBackup=nowStamp(); audit(L('बैकअप डाउनलोड','Backup downloaded')); save();
+  downloadFile('registry-shop-backup-'+today()+'.json', JSON.stringify(DB,null,2),'application/json');
+  toast(L('बैकअप डाउनलोड हुआ — सुरक्षित जगह रखें','Backup downloaded — keep it safe'),{type:'good'});
+  render();
+}
+function importBackup(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f)return; const r=new FileReader();
+    r.onload=async()=>{ let d; try{ d=JSON.parse(r.result); }catch(e){ toast(L('फ़ाइल पढ़ी नहीं जा सकी।','Could not read file.'),{type:'bad'}); return; }
+      const ok=await confirmDialog(L('मौजूदा डेटा हट जाएगा और बैकअप वाला आ जाएगा। जारी रखें?','Current data will be replaced by the backup. Continue?'),{danger:true,ok:L('हाँ, वापस लाएँ','Yes, restore')});
+      if(!ok)return; replaceDB(d); save(); state.lang=DB.settings.lang||'hi'; applyStaticI18n(); render(); toast(L('बैकअप वापस आ गया।','Backup restored.'),{type:'good'}); };
+    r.readAsText(f); };
+  inp.click();
+}
+async function restoreSnapshot(i){
+  const snaps=getAutoSnapshots(); const s=snaps[i]; if(!s)return;
+  const ok=await confirmDialog(L(esc(s.at)+' वाली हालत वापस लाएँ? मौजूदा डेटा बदल जाएगा।','Restore the state from '+esc(s.at)+'? Current data will change.'),{danger:true,ok:L('हाँ, वापस लाएँ','Yes, restore')});
+  if(!ok)return; replaceDB(JSON.parse(s.data)); save(); state.lang=DB.settings.lang||'hi'; applyStaticI18n(); render(); toast(L('ऑटो-सेव वापस आ गया','Auto-save restored'),{type:'good'});
+}
+async function wipeAll(){
+  const ok=await confirmDialog(L('पक्का? सारा डेटा हमेशा के लिए मिट जाएगा। पहले बैकअप ले लें!','Sure? All data will be erased permanently. Back up first!'),{danger:true,ok:L('हाँ, मिटाएँ','Yes, erase')});
+  if(!ok)return;
+  const ok2=await confirmDialog(L('आख़िरी पुष्टि — सचमुच सब मिटाएँ?','Final confirm — really erase everything?'),{danger:true,ok:L('मिटाएँ','Erase')});
+  if(!ok2)return; replaceDB(defaultData()); save(); state.lang='hi'; applyStaticI18n(); render(); toast(L('सारा डेटा मिट गया','All data erased'),{type:'warn'});
+}
+function downloadFile(name,content,type){ const blob=new Blob([content],{type}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),30000); }
+
+/* ============================================================
+                     SHARED HTML / PRINT
+   ============================================================ */
+function shopHeaderHTML(){
+  return `<div style="text-align:center;border-bottom:2px solid #333;padding-bottom:8px">
+    <div style="font-size:22px;font-weight:800">${esc(DB.settings.shopName||L('रजिस्ट्री दुकान','Registry Shop'))}</div>
+    ${DB.settings.shopAddress?`<div style="font-size:13px">${esc(DB.settings.shopAddress)}</div>`:''}
+    ${DB.settings.shopPhone?`<div style="font-size:13px">${L('फ़ोन','Phone')}: ${esc(DB.settings.shopPhone)}</div>`:''}
+    ${DB.settings.gstEnabled&&DB.settings.gstin?`<div style="font-size:13px">GSTIN: ${esc(DB.settings.gstin)}</div>`:''}
+  </div>`;
+}
+function printDoc(title,inner){
+  const w=window.open('','_blank'); if(!w){ toast(L('प्रिंट विंडो खुली नहीं — पॉपअप अनुमति दें।','Print window blocked — allow pop-ups.'),{type:'warn'}); return; }
+  w.document.write(`<html><head><title>${esc(title)}</title>
+    <style>body{font-family:"Segoe UI",Arial,"Noto Sans Devanagari";padding:26px;color:#222;max-width:720px;margin:auto}
+    h2,h3,h4{margin:8px 0} table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{border:1px solid #ccc;padding:7px 9px;font-size:14px}th{background:#f0f0f0;text-align:left}
+    table.kv td{border:0;padding:3px 0;font-size:14px} table.kv td:first-child{color:#555;width:45%}
+    .tot{font-size:18px;font-weight:700;margin-top:14px;text-align:right}</style></head><body>
+    ${inner}
+    <script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  w.document.close();
+}
+function tableHTML(cols,rows){
+  return `<div class="tablewrap" role="region" aria-label="${L('तालिका','Table')}"><table><thead><tr>${cols.map(c=>`<th scope="col" class="${/रकम|बकाया|जमा|शेष|Amount|Balance|Charge|Paid|Debit|Credit|Salary|Stamp|Fee|कुल|Total|स्टांप|फ़ीस|शुल्क|मिला|Received|Due|Income|Expense|Net|Govt|सरकारी/.test(c)?'num':''}">${c}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map(cell=>{ if(cell&&cell.num!==undefined)return `<td class="num">${cell.v}</td>`; return `<td>${cell==null?'':cell}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function emptyHTML(msg){ return `<div class="card empty"><span class="big">📭</span>${esc(msg)}</div>`; }
+function actBtns(list){ return list.map(([icon,fn,title])=>`<button class="btn ghost sm" title="${esc(title||'')}" aria-label="${esc(title||'')}" onclick="${fn}">${icon}</button>`).join(' '); }
+
+/* ---------- pagination (keeps the UI fast at 1000-2000+ records) ----------
+   Big lists (registry docs, daily income/expense) only render one page of rows
+   into the DOM at a time. Filtering/sorting still runs over the full dataset;
+   only the slice that is shown is built into HTML. */
+const PAGE_SIZE=50;
+const _page={};                      /* per-view current page index (0-based) */
+function getPage(key,total){
+  let p=_page[key]||0;
+  const last=Math.max(0,Math.ceil(total/PAGE_SIZE)-1);
+  if(p>last) p=last; if(p<0) p=0;
+  _page[key]=p; return p;
+}
+function setPage(key,p){ _page[key]=p; render(); }
+function resetPage(key){ _page[key]=0; }
+/* paginatedTable: rows already filtered+sorted. Renders the active page plus a pager. */
+function paginatedTable(key,cols,allRows){
+  const total=allRows.length;
+  if(!total) return emptyHTML(L('इस फ़िल्टर में कोई रिकॉर्ड नहीं।','No records for this filter.'));
+  const p=getPage(key,total);
+  const start=p*PAGE_SIZE, end=Math.min(total,start+PAGE_SIZE);
+  const slice=allRows.slice(start,end);
+  let pager='';
+  if(total>PAGE_SIZE){
+    const last=Math.ceil(total/PAGE_SIZE)-1;
+    pager=`<div class="pager">
+      <span class="info">${L('दिखा रहे हैं','Showing')} ${start+1}–${end} ${L('में से','of')} ${total}</span>
+      <div class="spacer"></div>
+      <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="setPage('${key}',0)">⏮ ${L('पहला','First')}</button>
+      <button class="btn ghost sm" ${p<=0?'disabled':''} onclick="setPage('${key}',${p-1})">‹ ${L('पिछला','Prev')}</button>
+      <span class="info">${L('पृष्ठ','Page')} ${p+1}/${last+1}</span>
+      <button class="btn ghost sm" ${p>=last?'disabled':''} onclick="setPage('${key}',${p+1})">${L('अगला','Next')} ›</button>
+      <button class="btn ghost sm" ${p>=last?'disabled':''} onclick="setPage('${key}',${last})">${L('आख़िरी','Last')} ⏭</button>
+    </div>`;
+  }
+  return tableHTML(cols,slice)+pager;
+}
+
+/* ---------- demo data ---------- */
+function loadDemo(){
+  const go=()=>{
+    const t=today(),m=curMonth();
+    const _arrs=['workers','salaryPayments','transactions','customers','ledgerEntries','bankAccounts','bankTransactions','registryDocs'];
+    const _start={}; _arrs.forEach(k=>_start[k]=DB[k].length);
+    DB.settings.shopName=DB.settings.shopName||L('शर्मा रजिस्ट्री सेवा','Sharma Registry Service');
+    DB.settings.shopAddress=DB.settings.shopAddress||L('मेन रोड, इंदौर','Main Road, Indore');
+    DB.settings.shopPhone=DB.settings.shopPhone||'98260-00000';
+    const w1=uid(),w2=uid(); DB.workers.push({id:w1,name:L('रमेश','Ramesh'),role:L('क्लर्क','Clerk'),phone:'9000000001',monthlySalary:12000},
+      {id:w2,name:L('सीमा','Seema'),role:L('टाइपिस्ट','Typist'),phone:'9000000002',monthlySalary:9000});
+    DB.salaryPayments.push({id:uid(),workerId:w1,month:m,date:t,amount:6000,mode:'cash',note:L('आधी सैलरी','Half')});
+    DB.transactions.push(
+      {id:uid(),type:'income',date:t,category:L('रजिस्ट्री फ़ीस','Registry Fee'),amount:3500,mode:'upi',note:L('विक्रय','Sale'),createdAt:Date.now()},
+      {id:uid(),type:'income',date:t,category:L('टाइपिंग','Typing'),amount:500,mode:'cash',note:'',createdAt:Date.now()+1},
+      {id:uid(),type:'expense',date:t,category:L('बिजली बिल','Electricity'),amount:800,mode:'cash',note:'',createdAt:Date.now()+2},
+      {id:uid(),type:'expense',date:t,category:L('चाय-नाश्ता','Tea'),amount:150,mode:'cash',note:'',createdAt:Date.now()+3});
+    const c1=uid(),c2=uid(); DB.customers.push({id:c1,name:L('मोहन वर्मा','Mohan Verma'),phone:'9811111111',address:L('इंदौर','Indore')},
+      {id:c2,name:L('अनीता जैन','Anita Jain'),phone:'9822222222',address:L('भोपाल','Bhopal')});
+    DB.ledgerEntries.push(
+      {id:uid(),customerId:c1,type:'charge',date:t,amount:5000,note:L('रजिस्ट्री फ़ीस','Registry fee'),createdAt:Date.now()},
+      {id:uid(),customerId:c1,type:'payment',date:t,amount:2000,note:L('आंशिक भुगतान','Part payment'),createdAt:Date.now()+1},
+      {id:uid(),customerId:c2,type:'charge',date:t,amount:3000,note:L('दान विलेख','Gift deed'),createdAt:Date.now()+2});
+    const a1=uid(); DB.bankAccounts.push({id:a1,name:'SBI',accountNo:'1234',openingBalance:50000});
+    DB.bankTransactions.push({id:uid(),accountId:a1,date:t,description:L('UPI जमा','UPI credit'),debit:0,credit:3500},
+      {id:uid(),accountId:a1,date:t,description:L('बिजली बिल','Electricity'),debit:800,credit:0});
+    DB.registryDocs.push(
+      {id:uid(),docNo:'REG-0001',date:t,deedType:'sale',party1:L('मोहन वर्मा','Mohan Verma'),party2:L('राज पटेल','Raj Patel'),applicantPhone:'9811111111',sro:L('उप-पंजीयक इंदौर-1','SRO Indore-1'),
+        property:L('प्लॉट 12, स्कीम 54','Plot 12, Scheme 54'),consideration:2500000,stampDuty:45000,regFee:5000,serviceCharge:3000,received:3000,status:'done',note:'',createdAt:Date.now()},
+      {id:uid(),docNo:'REG-0002',date:t,deedType:'gift',party1:L('अनीता जैन','Anita Jain'),party2:L('प्रिया जैन','Priya Jain'),applicantPhone:'9822222222',sro:L('उप-पंजीयक भोपाल-2','SRO Bhopal-2'),
+        property:L('मकान 7, अरेरा','House 7, Arera'),consideration:1800000,stampDuty:18000,regFee:2000,serviceCharge:2500,received:1000,status:'pending',note:'',createdAt:Date.now()+1});
+    /* tag every record this demo added so it can be removed cleanly later */
+    _arrs.forEach(k=>{ for(let i=_start[k];i<DB[k].length;i++) DB[k][i]._demo=true; });
+    DB.settings.demoLoaded=true;
+    save(); render(); toast(L('डेमो डेटा भर गया! अब ऐप घूम कर देखें। (बैकअप/सेटिंग से "डेमो हटाएँ")','Demo data loaded! Explore the app. (Remove via Backup/Settings)'),{type:'good',duration:5500});
+  };
+  if(DB.transactions.length||DB.customers.length){ confirmDialog(L('डेमो डेटा मौजूदा में जोड़ दिया जाए?','Add demo data to existing?')).then(ok=>{ if(ok)go(); }); }
+  else go();
+}
+function hasDemoData(){
+  return ['workers','salaryPayments','transactions','customers','ledgerEntries','bankAccounts','bankTransactions','registryDocs']
+    .some(k=>DB[k].some(x=>x&&x._demo));
+}
+async function removeDemo(){
+  const ok=await confirmDialog(L('सिर्फ़ डेमो/सैंपल डेटा हटाया जाएगा — आपका असली डेटा सुरक्षित रहेगा। जारी रखें?','Only demo/sample data will be removed — your real data stays safe. Continue?'),{ok:L('हाँ, डेमो हटाएँ','Yes, remove demo')});
+  if(!ok)return;
+  ['workers','salaryPayments','transactions','customers','ledgerEntries','bankAccounts','bankTransactions','registryDocs']
+    .forEach(k=>{ DB[k]=DB[k].filter(x=>!(x&&x._demo)); });
+  DB.settings.demoLoaded=false; audit(L('डेमो डेटा हटाया','Demo data removed'));
+  save(); render(); toast(L('डेमो डेटा हट गया।','Demo data removed.'),{type:'good'});
+}
+
+/* ---------- keyboard shortcuts ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.repeat) return;
+  const open=document.getElementById('modalBg').classList.contains('show');
+  if((e.ctrlKey||e.metaKey) && e.key==='z' && !e.shiftKey){ e.preventDefault(); undo(); return; }
+  if((e.ctrlKey||e.metaKey) && e.key==='z' && e.shiftKey){ e.preventDefault(); redo(); return; }
+  if((e.ctrlKey||e.metaKey) && e.key==='y'){ e.preventDefault(); redo(); return; }
+  if(e.key==='Escape' && open){ closeModal(); }
+  else if(e.key==='Enter' && open && e.target.tagName!=='TEXTAREA'){
+    const btn=[...document.querySelectorAll('#modalBox .foot .btn')].find(b=>!b.classList.contains('ghost'));
+    if(btn){ e.preventDefault(); btn.click(); }
+  }
+  /* keyboard-activate sidebar links (they are <a> without href) */
+  else if(!open && (e.key==='Enter'||e.key===' ') && e.target.closest && e.target.closest('nav.side a')){ e.preventDefault(); e.target.click(); }
+});
+
+/* another tab saved newer data → reload so we don't clobber it on next save */
+window.addEventListener('storage',e=>{
+  if(e.key!==KEY || !e.newValue) return;
+  if(document.getElementById('modalBg').classList.contains('show')) return; /* don't yank a form away */
+  try{
+    const incoming=JSON.parse(e.newValue);
+    if((incoming.meta&&incoming.meta.savedAt||'') > (DB.meta&&DB.meta.savedAt||'')){
+      replaceDB(incoming); state.lang=DB.settings.lang||state.lang; applyStaticI18n(); render();
+      toast(L('दूसरी विंडो में हुआ बदलाव यहाँ आ गया।','Changes from another window were loaded here.'),{type:'warn',duration:5000});
+    }
+  }catch(_){}
+});
+
+/* ---------- help + first-run welcome ---------- */
+function helpModal(){
+  openModal(`
+   <h3>❔ ${L('मदद — जल्दी सीखें','Help — quick start')}</h3>
+   <div class="body" style="line-height:1.7;font-size:14.5px">
+     <p><b>${L('1) रोज़ की कमाई/खर्च','1) Daily income / expense')}</b><br>${L('डैशबोर्ड या "आय-खर्च" में हरे/लाल बटन से जोड़ें।','Add via the green/red buttons on the Dashboard or "Income/Expense".')}</p>
+     <p><b>${L('2) रजिस्ट्री दस्तावेज़','2) Registry document')}</b><br>${L('"रजिस्ट्री" → नया दस्तावेज़। सरकारी शुल्क और अपना सेवा-शुल्क अलग भरें। 🧾 से रसीद छापें।','"Registry" → New Document. Enter govt charges and your service charge separately. Print a receipt with 🧾.')}</p>
+     <p><b>${L('3) उधार व बकाया','3) Credit & dues')}</b><br>${L('"उधार खाता" में ग्राहक जोड़ें; सारा बकाया "बकाया वसूली" में एक जगह दिखता है।','Add customers in "Udhaar Ledger"; all dues appear together in "Pending Dues".')}</p>
+     <p><b>${L('4) बैकअप (बहुत ज़रूरी!)','4) Backup (very important!)')}</b><br>${L('हफ़्ते में एक बार बैकअप/सेटिंग से बैकअप लें, या एक बार बैकअप फ़ोल्डर चुन लें।','Once a week take a backup from Backup/Settings, or choose a backup folder once.')}</p>
+     <p style="color:var(--muted)">${L('हर हटाने/बदलने के बाद नीचे "↩ वापस लाएँ" आता है — बेझिझक काम करें!','After every delete/edit an "↩ Undo" appears — work without fear!')}</p>
+   </div>
+   <div class="foot"><button class="btn" onclick="closeModal()">${L('ठीक है','Got it')}</button></div>`);
+}
+function welcomeWizard(){
+  /* show only once: persist immediately so dismissing via Esc / outside-click also counts */
+  if(!DB.settings.onboarded){ DB.settings.onboarded=true; save(); }
+  openModal(`
+   <h3>👋 ${L('स्वागत है!','Welcome!')}</h3>
+   <div class="body">
+     <p style="margin-top:0">${L('यह आपकी दुकान का हिसाब-किताब ऐप है — पूरी तरह ऑफ़लाइन, इसी कंप्यूटर पर। चलिए 30 सेकंड में सेट करें।','This is your shop bookkeeping app — fully offline, on this computer. Let us set up in 30 seconds.')}</p>
+     <label class="fld"><span class="lt">${L('भाषा','Language')}</span>
+       <select onchange="setLang(this.value);welcomeWizard()"><option value="hi" ${state.lang==='hi'?'selected':''}>हिंदी</option><option value="en" ${state.lang==='en'?'selected':''}>English</option></select></label>
+     <label class="fld"><span class="lt">${L('दुकान का नाम','Shop name')}</span><input id="wzShop" value="${esc(DB.settings.shopName||'')}" placeholder="${L('जैसे: शर्मा रजिस्ट्री सेवा','e.g. Sharma Registry Service')}"></label>
+     <div class="row2">
+       <label class="fld"><span class="lt">${L('पता','Address')}</span><input id="wzAddr" value="${esc(DB.settings.shopAddress||'')}"></label>
+       <label class="fld"><span class="lt">${L('फ़ोन','Phone')}</span><input id="wzPhone" value="${esc(DB.settings.shopPhone||'')}"></label>
+     </div>
+     <div class="hint">${L('"सैंपल डेटा" चुनें तो भरा-भरा ऐप देखकर समझ सकते हैं (बाद में एक क्लिक में हटा सकते हैं), या "खाली शुरू करें"।','Pick "sample data" to explore a filled app (removable later in one click), or "start empty".')}</div>
+   </div>
+   <div class="foot">
+     <button class="btn ghost" onclick="finishWizard(false)">${L('खाली शुरू करें','Start empty')}</button>
+     <button class="btn green" onclick="finishWizard(true)">🎁 ${L('सैंपल डेटा के साथ','With sample data')}</button>
+   </div>`);
+}
+function finishWizard(withDemo){
+  const g=id=>{ const el=document.getElementById(id); return el?el.value.trim():''; };
+  DB.settings.shopName=g('wzShop'); DB.settings.shopAddress=g('wzAddr'); DB.settings.shopPhone=g('wzPhone');
+  DB.settings.onboarded=true; save(); applyStaticI18n(); closeModal();
+  if(withDemo) loadDemo(); else render();
+  toast(L('तैयार! अब ऊपर हरे बटन से पहली आय जोड़ें। (मदद के लिए ऊपर ❔)','Ready! Add your first income with the green button. (❔ at top for help)'),{type:'good',duration:6000});
+}
+
+/* ============================================================
+              AUTO-BACKUP (daily download + folder)
+   ============================================================ */
+let _dirHandle=null; /* File System Access directory handle (if granted) */
+async function pickBackupFolder(){
+  if(!window.showDirectoryPicker){ toast(L('यह ब्राउज़र फ़ोल्डर-बैकअप सपोर्ट नहीं करता (Chrome/Edge इस्तेमाल करें)। रोज़ाना फ़ाइल-डाउनलोड चालू है।','This browser does not support folder backup (use Chrome/Edge). Daily file-download is on.'),{type:'warn'}); return; }
+  try{
+    const h=await window.showDirectoryPicker({mode:'readwrite'});
+    _dirHandle=h; await idbSetHandle(h);
+    DB.settings.backupFolderName=h.name; save(); render();
+    toast(L('बैकअप फ़ोल्डर सेट हो गया: '+h.name,'Backup folder set: '+h.name),{type:'good'});
+    writeFolderBackup();
+  }catch(e){ /* user cancelled */ }
+}
+async function idbSetHandle(h){ try{ const db=await idbOpen(); const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).put(h,'dirHandle'); }catch(e){} }
+async function idbGetHandle(){ try{ const db=await idbOpen(); return await new Promise(res=>{ const rq=db.transaction(IDB_STORE,'readonly').objectStore(IDB_STORE).get('dirHandle'); rq.onsuccess=()=>res(rq.result); rq.onerror=()=>res(null); }); }catch(e){ return null; } }
+async function writeFolderBackup(){
+  if(!_dirHandle) return false;
+  try{
+    if(_dirHandle.queryPermission){ const p=await _dirHandle.queryPermission({mode:'readwrite'});
+      if(p!=='granted'){ const r=await _dirHandle.requestPermission({mode:'readwrite'}); if(r!=='granted') return false; } }
+    const fh=await _dirHandle.getFileHandle('registry-shop-backup-'+today()+'.json',{create:true});
+    const w=await fh.createWritable(); await w.write(JSON.stringify(DB,null,2)); await w.close();
+    DB.settings.lastAutoBackup=nowStamp(); DB.settings.lastBackup=nowStamp();
+    try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){}
+    return true;
+  }catch(e){ return false; }
+}
+/* called after every save(): once a day, secure a backup automatically */
+let _autoBkBusy=false;
+async function maybeAutoBackup(){
+  if(_autoBkBusy || !DB.settings.autoBackupDaily) return;
+  const last=(DB.settings.lastAutoBackup||'').slice(0,10);
+  if(last===today()) return;
+  _autoBkBusy=true;
+  try{
+    if(_dirHandle){ const ok=await writeFolderBackup(); if(ok){ toast(L('🛟 आज का अपने-आप बैकअप फ़ोल्डर में सेव हुआ','🛟 Today\'s auto-backup saved to your folder'),{type:'good'}); } }
+    else if(DB.transactions.length||DB.registryDocs.length){
+      /* fallback: silent daily file download */
+      downloadFile('registry-shop-AUTOBACKUP-'+today()+'.json', JSON.stringify(DB,null,2),'application/json');
+      DB.settings.lastAutoBackup=nowStamp(); DB.settings.lastBackup=nowStamp();
+      try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){}
+      toast(L('🛟 आज का अपने-आप बैकअप डाउनलोड हुआ (Downloads फ़ोल्डर में)','🛟 Today\'s auto-backup downloaded (in Downloads)'),{type:'good',duration:5000});
+    }
+  }finally{ _autoBkBusy=false; }
+}
+
+/* ============================================================
+                 THEME / FONT / PASSCODE
+   ============================================================ */
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', DB.settings.theme==='dark'?'dark':'light');
+  /* app uses px units throughout, so zoom is what visibly scales the whole UI
+     (Chrome/Edge — the target browsers). Keep it within sane bounds. */
+  if(document.body) document.body.style.zoom = (DB.settings.fontScale||1);
+}
+function setTheme(t){ DB.settings.theme=t; save(); applyTheme(); render(); }
+function setFontScale(s){ DB.settings.fontScale=Math.max(0.85,Math.min(1.4,Number(s)||1)); save(); applyTheme(); }
+async function pbkdf2Hash(passcode){
+  try{
+    var salt=crypto.getRandomValues(new Uint8Array(16));
+    var key=await crypto.subtle.importKey('raw',new TextEncoder().encode(passcode),{name:'PBKDF2'},false,['deriveBits']);
+    var hash=await crypto.subtle.deriveBits({name:'PBKDF2',salt:salt,iterations:100000,hash:'SHA-256'},key,256);
+    var out=new Uint8Array(48); out.set(salt,0); out.set(new Uint8Array(hash),16);
+    return btoa(String.fromCharCode.apply(null,out));
+  }catch(e){ return 'plain:'+passcode; }
+}
+async function verifyPbkdf2(passcode,storedHash){
+  try{
+    if(storedHash.startsWith('plain:')) return passcode===storedHash.slice(6);
+    var raw=Uint8Array.from(atob(storedHash),function(c){return c.charCodeAt(0);});
+    if(raw.length!==48) return false;
+    var salt=raw.slice(0,16), expected=raw.slice(16);
+    var key=await crypto.subtle.importKey('raw',new TextEncoder().encode(passcode),{name:'PBKDF2'},false,['deriveBits']);
+    var hash=await crypto.subtle.deriveBits({name:'PBKDF2',salt:salt,iterations:100000,hash:'SHA-256'},key,256);
+    var actual=new Uint8Array(hash);
+    if(actual.length!==expected.length) return false;
+    var diff=0; for(var i=0;i<actual.length;i++) diff|=actual[i]^expected[i];
+    return diff===0;
+  }catch(e){ return false; }
+}
+function setPasscode(){
+  formModal(L('पासकोड सेट करें','Set Passcode'),[
+    {key:'p1',label:L('नया पासकोड (अंक)','New passcode (digits)'),type:'password',required:true,help:L('याद रखें! भूलने पर बैकअप से ही खुलेगा।','Remember it! If forgotten, only a backup can recover data.')},
+    {key:'p2',label:L('दोबारा डालें','Repeat passcode'),type:'password',required:true},
+  ],{},async o=>{
+    if(o.p1!==o.p2){ setErr('p2',L('दोनों पासकोड अलग हैं','Passcodes do not match')); return; }
+    DB.settings.passcodeHash=await pbkdf2Hash(o.p1); DB.settings.passcode='';
+    audit(L('पासकोड सेट/बदला','Passcode set/changed')); save(); render(); closeModal();
+    toast(L('पासकोड सेट हो गया','Passcode set'),{type:'good'});
+  });
+}
+async function removePasscode(){
+  const ok=await confirmDialog(L('पासकोड हटा दें? ऐप बिना पासकोड के खुलेगा।','Remove passcode? The app will open without one.'),{});
+  if(!ok)return;
+  DB.settings.passcodeHash=''; DB.settings.passcode=''; audit(L('पासकोड हटाया','Passcode removed')); save(); render();
+  toast(L('पासकोड हट गया','Passcode removed'),{type:'good'});
+}
+function lockScreen(){
+  if(!DB.settings.passcodeHash && !DB.settings.passcode) return;
+  const ov=document.getElementById('lockOverlay'); if(ov) ov.remove();
+  const d=document.createElement('div'); d.id='lockOverlay';
+  d.style.cssText='position:fixed;inset:0;z-index:200;background:var(--brand);display:flex;align-items:center;justify-content:center';
+  d.innerHTML=`<div style="background:var(--card);padding:30px;border-radius:18px;max-width:320px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <div style="font-size:40px">🔒</div><h3 style="margin:8px 0 14px">${L('पासकोड डालें','Enter Passcode')}</h3>
+    <input id="lockInput" type="password" inputmode="numeric" style="text-align:center;font-size:20px;letter-spacing:4px" placeholder="••••">
+    <div id="lockErr" style="color:var(--danger);font-size:13px;height:18px;margin:6px 0"></div>
+    <button class="btn big" style="width:100%" onclick="tryUnlock()">${L('खोलें','Unlock')}</button></div>`;
+  document.body.appendChild(d);
+  const inp=document.getElementById('lockInput'); inp.focus();
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') tryUnlock(); });
+}
+async function tryUnlock(){
+  const v=document.getElementById('lockInput').value;
+  const ok = DB.settings.passcodeHash ? await verifyPbkdf2(v,DB.settings.passcodeHash)
+                                      : v===DB.settings.passcode;
+  if(ok){ const ov=document.getElementById('lockOverlay'); if(ov)ov.remove(); }
+  else { document.getElementById('lockErr').textContent=L('ग़लत पासकोड','Wrong passcode'); document.getElementById('lockInput').value=''; document.getElementById('lockInput').focus(); }
+}
+
+/* ============================================================
+   Multi-device sync engine (client side).
+   Pushes after every save (debounced), polls every ~7s, and merges
+   with merge3() so PC + phone stay in sync. All network is best-effort:
+   if offline the app keeps working locally and reconciles on reconnect.
+
+   E2E encryption: the document is encrypted client-side with the sync key
+   before leaving the device; the server stores only opaque ciphertext and
+   the merge3 reconciliation also runs client-side. The server is a dumb
+   CAS (content-addressable store) that never sees plaintext data.
+   ============================================================ */
+const SYNC_ENDPOINT='/.netlify/functions/sync';
+const SYNC_BASE_KEY='registry_shop_app_v1_syncbase';
+let _syncBase=null, _syncPushTimer=null, _syncPollTimer=null, _syncBusy=false, _syncPushPending=false;
+
+/* ---- E2E encryption helpers (Web Crypto API) ---- */
+async function syncDeriveKey(passphrase, salt){
+  const enc=new TextEncoder();
+  const keyMaterial=await crypto.subtle.importKey('raw', enc.encode(passphrase), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:600000, hash:'SHA-256' },
+    keyMaterial, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function syncEncrypt(plainObj, passphrase){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await syncDeriveKey(passphrase, salt);
+  const enc=new TextEncoder();
+  const ct=new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(JSON.stringify(plainObj))));
+  const out=new Uint8Array(salt.length+iv.length+ct.length);
+  out.set(salt,0); out.set(iv,16); out.set(ct,28);
+  return btoa(String.fromCharCode(...out));
+}
+async function syncDecrypt(encB64, passphrase){
+  try{
+    const raw=Uint8Array.from(atob(encB64), c=>c.charCodeAt(0));
+    const salt=raw.slice(0,16); const iv=raw.slice(16,28); const ct=raw.slice(28);
+    const key=await syncDeriveKey(passphrase, salt);
+    const pt=await crypto.subtle.decrypt({ name:'AES-GCM', iv }, key, ct);
+    return JSON.parse(new TextDecoder().decode(pt));
+  }catch(e){ return null; }
+}
+/* run after any sync op: free the busy lock and, if a push was requested while
+   busy (e.g. a save fired during a poll), flush it now so local edits aren't
+   stranded until the next save. */
+function _afterSyncOp(){
+  _syncBusy=false;
+  if(_syncPushPending){ _syncPushPending=false; syncSchedulePush(); }
+}
+function _clone(o){ return o?JSON.parse(JSON.stringify(o)):o; }
+/* settings that belong to THIS device and must never travel between devices:
+   sync internals, the passcode secret, plus per-device backup bookkeeping.
+   Syncing them corrupts the backup reminder (one device's backup silences the
+   other's) and leaks the secret sync key / passcode into the shared blob. */
+const DEVICE_LOCAL_SETTINGS=['syncEnabled','syncKey','syncRev','lastSyncAt',
+  'lastBackup','lastAutoBackup','backupFolderName','passcode','passcodeHash'];
+/* a copy of DB safe to send/merge: device-local settings stripped out. */
+function syncableDoc(src){
+  const d=_clone(src);
+  if(d&&d.settings){ DEVICE_LOCAL_SETTINGS.forEach(k=>{ delete d.settings[k]; }); }
+  return d;
+}
+function loadSyncBase(){ try{ _syncBase=JSON.parse(localStorage.getItem(SYNC_BASE_KEY)||'null'); }catch(e){ _syncBase=null; } }
+function saveSyncBase(obj){ _syncBase=_clone(obj); try{ localStorage.setItem(SYNC_BASE_KEY, JSON.stringify(_syncBase)); }catch(e){} }
+/* must match netlify/functions/sync.mjs: 16 for NEW keys, 4 floor for existing
+   (grandfathered) keys. The client lets any >=4 key drive sync; the server
+   rejects brand-new short keys, so existing short-key shops keep working. */
+const SYNC_MIN_KEY_LENGTH=16;
+const SYNC_MIN_LEGACY_LENGTH=4;
+function syncOn(){ return !!(DB.settings.syncEnabled && DB.settings.syncKey && String(DB.settings.syncKey).trim().length>=SYNC_MIN_LEGACY_LENGTH); }
+function setSyncChip(stateName){
+  const c=document.getElementById('syncChip'); if(!c) return;
+  if(!syncOn()){ c.style.display='none'; return; }
+  c.style.display='';
+  const map={ ok:['✓ सिंक','✓ synced','#1a7f37'], busy:['⏳ सिंक…','⏳ syncing…','#9a6700'],
+    off:['⚠ ऑफ़लाइन','⚠ offline','#b35900'], err:['⚠ सिंक रुका','⚠ sync paused','#cf222e'] };
+  const m=map[stateName]||map.ok;
+  c.textContent=L(m[0],m[1]); c.style.color=m[2]; c.style.opacity='1';
+}
+/* save DB locally WITHOUT triggering another sync push (avoids a push loop) */
+function persistQuiet(){
+  const json=JSON.stringify(DB);
+  try{ localStorage.setItem(KEY, json); }catch(e){}
+  idbSet(json).catch(()=>{});
+}
+/* apply a merged document received from / reconciled with the server.
+   serverDoc is what the server actually holds at this rev; it becomes the new
+   merge ancestor (base). The base MUST track the server's copy, not the merged
+   local DB — otherwise local-only records (in base+mine, absent on server) are
+   read as deletions on the next push and silently dropped. */
+function applyMerged(merged, rev, serverDoc){
+  const modalOpen=(()=>{ const e=document.getElementById('modalBg'); return e&&e.classList.contains('show'); })();
+  if(modalOpen) return false;                 /* don't yank data out from under an open form; retry next poll */
+  /* the merged doc carries no device-local settings — keep this device's own. */
+  const localSettings={}; DEVICE_LOCAL_SETTINGS.forEach(k=>{ localSettings[k]=DB.settings[k]; });
+  replaceDB(merged);
+  Object.assign(DB.settings, localSettings);
+  DB.settings.syncRev=rev;
+  DB.settings.lastSyncAt=nowStamp();
+  saveSyncBase(serverDoc!==undefined ? serverDoc : merged);
+  state.lang=DB.settings.lang||state.lang;
+  persistQuiet();
+  captureFocus(); applyStaticI18n(); render(); restoreFocus();
+  return true;
+}
+async function _req(method, body){
+  const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(), 12000);
+  try{
+    const res=await fetch(SYNC_ENDPOINT, { method,
+      headers:{ 'content-type':'application/json', 'x-shop-key':DB.settings.syncKey },
+      body: body?JSON.stringify(body):undefined, signal:ctrl.signal });
+    if(!res.ok){ return { _err:res.status }; }
+    return await res.json();
+  }catch(e){ return { _err:'network' }; }
+  finally{ clearTimeout(t); }
+}
+async function syncPush(){
+  if(!syncOn()) return;
+  if(_syncBusy){ _syncPushPending=true; return; }
+  _syncBusy=true; setSyncChip('busy');
+  try{
+    const pushed=syncableDoc(DB);
+    const encrypted=await syncEncrypt(pushed, DB.settings.syncKey);
+    const resp=await _req('POST', { rev:DB.settings.syncRev||0, data:encrypted });
+    if(resp && resp._err){
+      setSyncChip(resp._err==='network'?'off':'err');
+      if(resp._err===403) toast(L('यह शॉप की बहुत छोटी है। नई दुकान के लिए 16+ अक्षर की की रखें।','This Shop Key is too short. Use a 16+ character key for a new shop.'),{type:'bad',sticky:true});
+      if(resp._err===413) toast(L('डेटा बहुत बड़ा है — सिंक नहीं हो सका। कृपया बैकअप लें और पुराना डेटा कम करें।','Data too large to sync. Please back up and trim old data.'),{type:'bad',sticky:true});
+      return;
+    }
+    if(resp && resp.conflict && resp.data){
+      const serverDoc=await syncDecrypt(resp.data, DB.settings.syncKey);
+      if(serverDoc){
+        const merged=merge3(_syncBase, serverDoc, syncableDoc(DB));
+        const hadConcurrentEdits=!_eq(merged, serverDoc);
+        applyMerged(merged, resp.rev, serverDoc);
+        if(hadConcurrentEdits) syncSchedulePush();
+      }
+    } else if(resp && resp.rev != null){
+      DB.settings.syncRev=resp.rev;
+      DB.settings.lastSyncAt=nowStamp();
+      saveSyncBase(pushed);
+      persistQuiet();
+    }
+    setSyncChip('ok');
+  }catch(e){ setSyncChip('err'); }
+  finally { _afterSyncOp(); }
+}
+async function syncPull(){
+  if(!syncOn() || _syncBusy) return;
+  _syncBusy=true;
+  try{
+    const resp=await _req('GET');
+    if(resp && resp._err){ setSyncChip(resp._err==='network'?'off':'err'); return; }
+    if(!resp){ return; }
+    if(resp.data==null){
+      setSyncChip('ok'); _syncPushPending=true; return;
+    }
+    if((resp.rev||0) > (DB.settings.syncRev||0)){
+      const serverDoc=await syncDecrypt(resp.data, DB.settings.syncKey);
+      if(serverDoc){
+        const merged=merge3(_syncBase, serverDoc, syncableDoc(DB));
+        applyMerged(merged, resp.rev, serverDoc);
+      }
+    }
+    setSyncChip('ok');
+  }catch(e){ setSyncChip('err'); }
+  finally { _afterSyncOp(); }
+}
+/* THIS defines the placeholder hook called from save() */
+function syncSchedulePush(){
+  if(!syncOn()) return;
+  clearTimeout(_syncPushTimer);
+  _syncPushTimer=setTimeout(()=>{ syncPush(); }, 1500);
+}
+function syncNow(){ if(!syncOn()) return; syncPull().then(()=>syncPush()); }
+function startSync(){
+  if(!syncOn()){ stopSync(); return; }
+  clearInterval(_syncPollTimer);
+  _syncPollTimer=setInterval(()=>{ if(document.visibilityState!=='hidden') syncPull(); }, 7000);
+  setSyncChip('ok');
+  syncNow();
+}
+function stopSync(){ clearInterval(_syncPollTimer); _syncPollTimer=null; setSyncChip('ok'); }
+window.addEventListener('online', ()=>{ if(syncOn()) syncNow(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && syncOn()) syncPull(); });
+loadSyncBase();
+
+/* ---------- init ---------- */
+applyTheme();
+applyStaticI18n();
+render();
+lockScreen(); /* lock synchronously before any paint, so data never flashes */
+if(corruptRecovered){
+  toast(L('⚠️ पिछला सेव डेटा पढ़ा नहीं जा सका। आपकी पुरानी फ़ाइल सुरक्षित रखी गई है — कृपया बैकअप से वापस लाएँ।','⚠️ Previous saved data could not be read. Your old copy was preserved — please restore from a backup.'),{type:'bad',sticky:true});
+}
+/* recover from IndexedDB if it holds data and localStorage was cleared/older */
+(async function bootstrap(){
+  try{
+    const idbJson=await idbGet();
+    if(idbJson){
+      const idbObj=JSON.parse(idbJson);
+      const idbAt=(idbObj.meta&&idbObj.meta.savedAt)||'';
+      const curAt=(DB.meta&&DB.meta.savedAt)||'';
+      const curEmpty=!(DB.transactions.length||DB.registryDocs.length||DB.customers.length);
+      if((curEmpty && (idbObj.transactions||[]).length+(idbObj.registryDocs||[]).length>0) || idbAt>curAt){
+        replaceDB(idbObj); state.lang=DB.settings.lang||'hi';
+        try{ localStorage.setItem(KEY,JSON.stringify(DB)); }catch(e){}
+        applyTheme(); applyStaticI18n(); render();
+        if(curEmpty) toast(L('🛟 आपका डेटा सुरक्षित डेटाबेस से वापस आ गया।','🛟 Your data was recovered from the durable database.'),{type:'good',duration:5000});
+      }
+    }
+  }catch(e){}
+  /* restore previously-granted backup folder handle */
+  try{ const h=await idbGetHandle(); if(h){ _dirHandle=h; } }catch(e){}
+  /* re-lock in case IndexedDB recovery brought in a passcode */
+  lockScreen();
+  /* first-time user with no data → friendly welcome wizard */
+  if(!DB.settings.onboarded && !DB.settings.shopName && !(DB.transactions.length||DB.registryDocs.length||DB.customers.length) && !DB.settings.passcodeHash && !DB.settings.passcode){
+    welcomeWizard();
+  }
+  /* multi-device sync: start polling if it was enabled on this device */
+  try{ if(syncOn()) startSync(); else setSyncChip('ok'); }catch(e){}
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function() {
+      // SW registration failed — app still works, just no offline cache
+    });
+  });
+}
+</script>
+</body>
+</html>
