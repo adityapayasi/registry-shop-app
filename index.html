@@ -507,6 +507,23 @@ function applyStaticI18n(){
   document.getElementById('langHi').classList.toggle('active',state.lang==='hi');
   document.getElementById('langEn').classList.toggle('active',state.lang==='en');
   document.getElementById('shopNameTop').textContent=DB.settings.shopName||'';
+
+  // Resolve static HTML attributes containing template literals ${L('hi','en')}
+  document.querySelectorAll('*').forEach(el => {
+    if (!el._templates) {
+      el._templates = {};
+      for (const attr of el.attributes) {
+        if (attr.value.includes('${L(')) {
+          el._templates[attr.name] = attr.value;
+        }
+      }
+    }
+    for (const name in el._templates) {
+      const template = el._templates[name];
+      const evaluated = template.replace(/\$\{L\(\s*(['"])(.*?)\1\s*,\s*(['"])(.*?)\3\s*\)\}/g, (m, q1, hi, q2, en) => L(hi, en));
+      el.setAttribute(name, evaluated);
+    }
+  });
 }
 function setLang(l){ state.lang=l; DB.settings.lang=l; save(); applyStaticI18n(); render(); }
 

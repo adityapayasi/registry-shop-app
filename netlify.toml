@@ -10,11 +10,6 @@
 [functions."reminder-scheduled"]
   schedule = "0 3 * * *"
 
-# Explicitly pass through function requests so the SPA catch-all doesn't intercept them
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
 
 # API endpoint for customer portal
 [[redirects]]

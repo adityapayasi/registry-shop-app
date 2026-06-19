@@ -99,8 +99,8 @@ function printGSTInvoice(doc) {
     <p style="font-size:12px;color:#666;margin-top:30px">
     Note: Government charges (Stamp Duty + Registration Fee) of ${money(govt)} are collected on behalf of the State Government and are not included in this taxable invoice.
     </p>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>new QRCode(document.getElementById('invQR'),{text:'${qrText}',width:140,height:140});</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+    <script>new QRCode(document.getElementById('invQR'),{text:'${qrText}',width:140,height:140});<\/script>
     </body></html>`);
   w.document.close();
 }
@@ -655,7 +655,7 @@ async function testTelegramMessage(chatId, message) {
     });
     const r = await resp.json();
     if (r.ok) toast(L('टेस्ट मैसेज भेजा गया','Test message sent'),{type:'good'});
-    else toast(L('टेस्ट फ़ेल: ' + (r.error||''),'Test failed: ' + (r.error||'')),{type:'bad'};
+    else toast(L('टेस्ट फ़ेल: ' + (r.error||''),'Test failed: ' + (r.error||'')),{type:'bad'});
   } catch (e) {}
 }
 
