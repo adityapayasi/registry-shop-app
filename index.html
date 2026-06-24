@@ -1003,7 +1003,7 @@ function renderRegistry(el){
         {num:true,v:money(num(d.stampDuty)+num(d.regFee))},{num:true,v:money(d.serviceCharge)},{num:true,v:money(d.received)},
         {num:true,v:registryDue(d)>0?`<span style="color:var(--danger);font-weight:700">${money(registryDue(d))}</span>`:money(0)},
         statusCell(d),
-        actBtns([['🧾',`printReceipt('${d.id}')`,L('रसीद','Receipt')],['📤',`shareReceiptWhatsApp('${d.id}')`,L('WhatsApp','WhatsApp')],['💰',`collectReg('${d.id}')`,L('पैसे लें','Collect')],['✏️',`addDoc(findDoc('${d.id}'))`,L('एडिट','Edit')],d.archived?['📂',`unarchiveRegistry('${d.id}')`,L('वापस लाएँ','Restore')]:['📦',`archiveRegistry('${d.id}')`,L('आर्काइव','Archive')],['🗑️',`delDoc('${d.id}')`,L('हटाएँ','Delete')]])])
+        actBtns([['🧾',`printReceipt('${d.id}')`,L('रसीद','Receipt')],['📤',`shareReceiptWhatsApp('${d.id}')`,L('WhatsApp','WhatsApp')],['💰',`collectReg('${d.id}')`,L('पैसे लें','Collect')],['➖',`subtractReg('${d.id}')`,L('घटाएँ','Subtract'),num(d.received)>0?null:true],['✏️',`addDoc(findDoc('${d.id}'))`,L('एडिट','Edit')],d.archived?['📂',`unarchiveRegistry('${d.id}')`,L('वापस लाएँ','Restore')]:['📦',`archiveRegistry('${d.id}')`,L('आर्काइव','Archive')],['🗑️',`delDoc('${d.id}')`,L('हटाएँ','Delete')]])])
     ) : emptyHTML(L('अभी कोई दस्तावेज़ नहीं। "नया दस्तावेज़" से जोड़ें।','No documents yet. Use "New Document".'))}
   `;
 }
@@ -1013,8 +1013,7 @@ function statusCell(d){
   const pay= ps==='paid'?`<span class="badge income">${L('पूरा','Paid')}</span>`: ps==='part'?`<span class="badge part">${L('आंशिक','Partial')}</span>`: ps==='unpaid'?`<span class="badge warn">${L('बकाया','Unpaid')}</span>`:'';
   return st+' '+pay;
 }
-function addDoc(vals){
-  const isEdit=vals&&vals.id;
+function addDoc(vals){const isEdit=vals&&vals.id;
   const custOpts=DB.customers.map(c=>({v:c.id,t:c.name})); custOpts.unshift({v:'',t:L('— कोई नहीं —','— none —')});
   const custNames=DB.customers.map(c=>c.name).filter(Boolean);
   const existingDocNo=vals&&vals.docNo?vals.docNo:'';
@@ -1045,7 +1044,23 @@ function addDoc(vals){
       applicantPhone:o.applicantPhone,sro:o.sro,property:o.property,consideration:num(o.consideration),
       stampDuty:num(o.stampDuty),regFee:num(o.regFee),serviceCharge:num(o.serviceCharge),received:num(o.received),note:o.note,
       customerId:o.customerId||'',linkToLedger:o.linkToLedger==='yes',followUpDate:o.followUpDate||'',archived:false};
-    if(isEdit){ withUndo(L('दस्तावेज़ बदला','Document updated'),()=>Object.assign(byId(DB.registryDocs,vals.id),rec)); closeModal(); }
+    if(isEdit){ 
+      const oldDoc=byId(DB.registryDocs,vals.id);
+      const oldReceived=num(oldDoc.received), newReceived=num(rec.received);
+      withUndo(L('दस्तावेज़ बदला','Document updated'),()=>{
+        Object.assign(oldDoc,rec);
+        // Auto-adjust ledger if linked and received changed
+        if(rec.linkToLedger && rec.customerId && oldReceived!==newReceived){
+          const diff=newReceived-oldReceived; // positive=more collected, negative=reduced
+          if(diff!==0){
+            const type=diff>0?'payment':'charge';
+            const note=diff>0?L('रजिस्ट्री वसूली (एडिट)','Registry collection (edit)')+' '+rec.docNo : L('रजिस्ट्री वसूली कम (एडिट)','Registry collection reduced (edit)')+' '+rec.docNo;
+            DB.ledgerEntries.push({id:uid(),customerId:rec.customerId,type,date:today(),amount:Math.abs(diff),note,createdAt:Date.now()});
+          }
+        }
+      }); 
+      closeModal(); 
+    }
     else {
       rec.id=uid(); rec.createdAt=Date.now(); DB.registryDocs.push(rec); audit(L('दस्तावेज़ जोड़ा ','Added document ')+(rec.docNo||'')); save(); render(); closeModal();
       let linked=false;
@@ -1075,20 +1090,29 @@ function quickAddCustomer(name,phone,address){
 function delDoc(id){ const d=byId(DB.registryDocs,id); withUndo(L('दस्तावेज़ हटाया','Document deleted')+' ('+esc(d.docNo||'')+')',()=>{ DB.registryDocs=DB.registryDocs.filter(x=>x.id!==id); }); }
 function collectReg(id){
   const d=byId(DB.registryDocs,id); if(!d)return; const due=registryDue(d);
+  const partyOpts=[{v:'general',t:L('सामान्य','General')},{v:'party1',t:L('पक्षकार 1: ','Party 1: ')+(d.party1||L('नाम नहीं','No name'))},{v:'party2',t:L('पक्षकार 2: ','Party 2: ')+(d.party2||L('नाम नहीं','No name'))}];
   formModal(L('सेवा-शुल्क वसूली','Collect Service Fee')+' — '+esc(d.docNo||''),[
     {key:'amount',label:L('अभी कितना मिला','Amount received now'),type:'number',required:true,value:due>0?due:'',help:L('बकाया','Due')+': '+money(due)},
+    {key:'recoverFrom',label:L('किस पक्षकार से वसूली','Recover from which party'),type:'select',options:partyOpts,value:'general',half:true},
+    {key:'addToLedger',label:L('उधार खाते में जोड़ें?','Add to Udhar Ledger?'),type:'select',options:[{v:'auto',t:L('ऑटो (पहले से जुड़ा है तो)','Auto (if already linked)')},{v:'yes',t:L('हाँ, जोड़ दें','Yes, add it')},{v:'no',t:L('नहीं','No')}],value:'auto',half:true},
     {key:'mode',label:L('तरीका','Mode'),type:'select',options:MODE_OPTS(),value:'cash'},
     {key:'asIncome',label:L('इसे आज की आय में जोड़ें?','Add this to today\'s income?'),type:'select',options:[{v:'yes',t:L('हाँ (सुझाव)','Yes (recommended)')},{v:'no',t:L('नहीं','No')}],value:'yes'},
   ],{},o=>{
     const amt=num(o.amount);
+    if(amt<=0){ toast(L('रकम 0 से ज़्यादा होनी चाहिए','Amount must be > 0'),{type:'bad'}); return; }
+    if(amt>due+0.01){ toast(L('रकम बकाया से ज़्यादा नहीं हो सकती','Amount cannot exceed due'),{type:'bad'}); return; }
+    const shouldLinkToLedger=o.addToLedger==='yes' || (o.addToLedger==='auto' && d.linkToLedger && d.customerId);
+    const targetCustomerId=shouldLinkToLedger?(d.customerId||''):'';
     withUndo(L('वसूली दर्ज','Payment recorded'),()=>{
       d.received=num(d.received)+amt;
       if(o.asIncome==='yes') DB.transactions.push({id:uid(),type:'income',date:today(),category:L('रजिस्ट्री फ़ीस','Registry Fee'),amount:amt,mode:o.mode,note:(d.docNo||'')+' '+(d.party1||''),createdAt:Date.now()});
-      if(d.linkToLedger && d.customerId){
-        DB.ledgerEntries.push({id:uid(),customerId:d.customerId,type:'payment',date:today(),amount:amt,note:L('रजिस्ट्री वसूली','Registry collection')+' '+d.docNo,createdAt:Date.now()});
+      if(shouldLinkToLedger && targetCustomerId){
+        const partyLabel=o.recoverFrom==='party1'?(d.party1||''):o.recoverFrom==='party2'?(d.party2||''):'';
+        const note=L('रजिस्ट्री वसूली','Registry collection')+' '+d.docNo+(partyLabel?' ('+partyLabel+')':'');
+        DB.ledgerEntries.push({id:uid(),customerId:targetCustomerId,type:'payment',date:today(),amount:amt,note,createdAt:Date.now()});
       }
     });
-    closeModal();
+    closeModal(); toast(L('वसूली दर्ज','Payment recorded'),{type:'good'});
   });
 }
 function offerRecordIncome(id,amt){
@@ -1832,7 +1856,7 @@ function tableHTML(cols,rows){
     <tbody>${rows.map(r=>`<tr>${r.map(cell=>{ if(cell&&cell.num!==undefined)return `<td class="num">${cell.v}</td>`; return `<td>${cell==null?'':cell}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function emptyHTML(msg){ return `<div class="card empty"><span class="big">📭</span>${esc(msg)}</div>`; }
-function actBtns(list){ return list.map(([icon,fn,title])=>`<button class="btn ghost sm" title="${esc(title||'')}" aria-label="${esc(title||'')}" onclick="${fn}">${icon}</button>`).join(' '); }
+function actBtns(list){ return list.map(([icon,fn,title,disabled])=>disabled?`<button class="btn ghost sm" title="${esc(title||'')}" aria-label="${esc(title||'')}" disabled style="opacity:.4;cursor:not-allowed">${icon}</button>`:`<button class="btn ghost sm" title="${esc(title||'')}" aria-label="${esc(title||'')}" onclick="${fn}">${icon}</button>`).join(' '); }
 
 /* ---------- pagination (keeps the UI fast at 1000-2000+ records) ----------
    Big lists (registry docs, daily income/expense) only render one page of rows
@@ -2144,7 +2168,14 @@ async function syncEncrypt(plainObj, passphrase){
   const ct=new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(JSON.stringify(plainObj))));
   const out=new Uint8Array(salt.length+iv.length+ct.length);
   out.set(salt,0); out.set(iv,16); out.set(ct,28);
-  return btoa(String.fromCharCode(...out));
+  
+  let bin = '';
+  const len = out.byteLength;
+  const chunkSize = 8192;
+  for (let i = 0; i < len; i += chunkSize) {
+    bin += String.fromCharCode.apply(null, out.subarray(i, i + chunkSize));
+  }
+  return btoa(bin);
 }
 async function syncDecrypt(encB64, passphrase){
   try{
@@ -2346,6 +2377,44 @@ async function testTelegramConnection(){
   await testTelegramMessage('TEST_CHAT_ID', 'Test from Registry Shop!');
 }
 
+function subtractReg(id){
+  const d=byId(DB.registryDocs,id); if(!d)return; const rec=num(d.received);
+  if(rec<=0){ toast(L('वसूली हुई रकम 0 है — घटाने को कुछ नहीं','No collection to subtract'),{type:'bad'}); return; }
+  const partyOpts=[{v:'general',t:L('सामान्य','General')},{v:'party1',t:L('पक्षकार 1: ','Party 1: ')+(d.party1||L('नाम नहीं','No name'))},{v:'party2',t:L('पक्षकार 2: ','Party 2: ')+(d.party2||L('नाम नहीं','No name'))}];
+  formModal(L('वसूली घटाएँ/रिफंड','Reduce/Refund Collection')+' — '+esc(d.docNo||''),[
+    {type:'info',label:L('<b>ध्यान दें:</b> यहाँ रकम घटाने से उधार खाता में <b>बकाया बढ़ जाएगा</b> (ऑटो जोड़ दिया जाएगा)।','<b>Note:</b> Subtracting here will <b>increase due</b> in Udhar ledger (auto-added).')},
+    {key:'amount',label:L('कितना घटाना/वापस करना है','Amount to subtract/refund'),type:'number',required:true,value:rec,help:L('अब तक मिला','Received so far')+': '+money(rec)},
+    {key:'subtractFrom',label:L('किस पक्षकार का पैसा घटाएँ','Subtract from which party'),type:'select',options:partyOpts,value:'general',half:true},
+    {key:'subFromLedger',label:L('उधार खाते से भी घटाएँ?','Also subtract from Udhar Ledger?'),type:'select',options:[{v:'auto',t:L('ऑटो (जुड़ा है तो)','Auto (if linked)')},{v:'yes',t:L('हाँ','Yes')},{v:'no',t:L('नहीं','No')}],value:'auto',half:true},
+    {key:'reason',label:L('कारण','Reason'),type:'text',placeholder:L('जैसे: गलती से ज़्यादा लिया, रिफंड','e.g. overcharged, refund')},
+  ],{},o=>{
+    const amt=num(o.amount);
+    if(amt<=0){ toast(L('रकम 0 से ज़्यादा होनी चाहिए','Amount must be > 0'),{type:'bad'}); return; }
+    if(amt>rec+0.01){ toast(L('घटाई जा सकने वाली रकम वसूली से ज़्यादा नहीं','Cannot subtract more than collected'),{type:'bad'}); return; }
+    const shouldLink=o.subFromLedger==='yes' || (o.subFromLedger==='auto' && d.linkToLedger && d.customerId);
+    const targetCustomerId=shouldLink?(d.customerId||''):'';
+    withUndo(L('वसूली घटाई','Collection reduced'),()=>{
+      d.received=num(d.received)-amt;
+      if(shouldLink && targetCustomerId){
+        const partyLabel=o.subtractFrom==='party1'?(d.party1||''):o.subtractFrom==='party2'?(d.party2||''):'';
+        const note=L('रजिस्ट्री वसूली घटाई','Registry collection reduced')+' '+d.docNo+(o.reason?': '+o.reason:'')+(partyLabel?' ('+partyLabel+')':'');
+        DB.ledgerEntries.push({id:uid(),customerId:targetCustomerId,type:'charge',date:today(),amount:amt,note,createdAt:Date.now()});
+      }
+    });
+    closeModal(); toast(L('वसूली घटाई — उधार में बकाया बढ़ा','Collection reduced — Udhar due increased'),{type:'warn'});
+  });
+}
+
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function() {
+      // SW registration failed — app still works, just no offline cache
+    });
+  });
+}
+</script>
 </script>
 <script>
 if ('serviceWorker' in navigator) {
